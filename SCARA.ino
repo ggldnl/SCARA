@@ -39,8 +39,10 @@ void setup() {
   // Perform the homing sequence
   homeAllAxes();
 
+  delay(1000);
+
   // Move to position
-  // reachCartesian(0, 0, 100);
+  reachCartesian(0, 0, 100);
 }
 
 bool isMoving(void) {
@@ -119,8 +121,11 @@ void reachJoint(float joint_1, float joint_2, float joint_3) {
    *  3. Move by the steps;
    */
 
-  float steps_1 = joint_1 * JOINT_1_REDUCTION * MOTOR_1_STEPS_PER_REVOLUTION;
-  float steps_3 = joint_3 * JOINT_3_REDUCTION * MOTOR_3_STEPS_PER_REVOLUTION;
+  float steps_1 = joint_1 * JOINT_1_REDUCTION * MOTOR_1_MICROSTEPPING;
+  Serial.print("[ERR ] Joint 1 steps: ");
+  Serial.println(steps_1);
+  // float steps_3 = joint_3 * JOINT_3_REDUCTION * MOTOR_3_MICROSTEPPING;
+  float steps_3 = 0;
 
   // To move joint 2 we need to combine the motion of motor 2 and 3
   float steps_2 = 0;
@@ -172,6 +177,7 @@ void homeAllAxes() {
   // Go back to previous speed and ramp values
   setupSpeedAndRamp();
 
+  Serial.println("[INFO] Homing sequence completed");
 }
 
 void homeMotor(MoToStepper &motor, byte limitSwitchPin) {

@@ -23,13 +23,13 @@ const float MOTOR_1_HOMING_SPEED = 1000.0;
 const float MOTOR_2_HOMING_SPEED = 1000.0;
 const float MOTOR_3_HOMING_SPEED = 1000.0;
 
-const int POST_HOMING_STEPS = 200;
+const int POST_HOMING_STEPS = 250;
 
 // Ramp
 
-const int MOTOR_1_RAMP_LENGTH = 200;
-const int MOTOR_2_RAMP_LENGTH = 200;
-const int MOTOR_3_RAMP_LENGTH = 200;
+const int MOTOR_1_RAMP_LENGTH = 0;
+const int MOTOR_2_RAMP_LENGTH = 0;
+const int MOTOR_3_RAMP_LENGTH = 0;
 
 const int MOTOR_1_HOMING_RAMP_LENGTH = 0;
 const int MOTOR_2_HOMING_RAMP_LENGTH = 0;
@@ -41,6 +41,12 @@ const byte MOTOR_1_LIMIT_SWITCH_PIN = 9;
 const byte MOTOR_2_LIMIT_SWITCH_PIN = 10;
 const byte MOTOR_3_LIMIT_SWITCH_PIN = 11;
 
+// Microstepping
+
+const byte MOTOR_1_MICROSTEPPING = 1;
+const byte MOTOR_2_MICROSTEPPING = 1;
+const byte MOTOR_3_MICROSTEPPING = 1;
+
 // Steps per revolution
 
 const int MOTOR_1_STEPS_PER_REVOLUTION = 200;
@@ -49,7 +55,7 @@ const int MOTOR_3_STEPS_PER_REVOLUTION = 200;
 
 // Reduction ratios
 
-const int JOINT_1_REDUCTION = 100;  // (360° / step_angle) / leadscrew_pitch
+const int JOINT_1_REDUCTION = 200 / 4;  // steps_per_revolution / leadscrew_pitch
 const int JOINT_3_REDUCTION = 1;    // reduction_1 * reduction_2 * reduction_3
 
 // Link lenghts
