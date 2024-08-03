@@ -1,6 +1,10 @@
 # SCARA
 
+![Preview](media/preview.png)
 
+SCARA (Selective Compliance Assembly Robot Arm) is a type of robotic arm designed for tasks requiring high precision and speed, like assembly and pick-and-place operations. Its configuration allows for rigid vertical movement while maintaining flexibility in the horizontal plane. 
+
+This repository contains the design files, source code, and documentation for my custom-built SCARA robotic arm (forgive the redundancy). The arm is mostly 3d printed in order to offer a balance between affordability and functionality.
 
 ## Project history and current state
 
