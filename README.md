@@ -22,6 +22,7 @@ Below are two renders of the arm in Fusion 360; the left image shows it in the s
   <img src="media/SCARA.png" alt="Standard Material" width="45%" />
   <img src="media/SCARA_colored.png" alt="Colored Plastic" width="45%" />
 </p>
+* Missing screws, nuts and heat set inserts
 
 The original project utilized a DEVIA board, which is an Arduino Zero with built-in sockets for three A4988 stepper motor drivers and onboard drivers for four servos. I opted for an Arduino Uno paired with a CNC shield since it is more accessible and I happened to have the two lying around. This setup provides four sockets for stepper drivers and three pins that can be used for the endstops or the end-effector. I also added a 12V mini fan (used for 3d printers) to cool the stepper drivers.
 
