@@ -34,8 +34,8 @@ The original project utilized a DEVIA board, which is an Arduino Zero with built
 
 ## Tutorials
 
-The assembly tutorial can be found [here]().\
-The softare installation guide can be found [here]().
+Assembly:
+<iframe src='https://instructions.online/?id=12092-scara' width='560' height='315' allowfullscreen></iframe>
 
 ## TODO
 
