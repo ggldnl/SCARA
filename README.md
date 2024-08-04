@@ -34,8 +34,7 @@ The original project utilized a DEVIA board, which is an Arduino Zero with built
 
 ## Tutorials
 
-Assembly:
-<iframe src='https://instructions.online/?id=12092-scara' width='560' height='315' allowfullscreen></iframe>
+The assembly tutorial can be found [here](https://instructions.online/?id=12092-scara).
 
 ## TODO
 
