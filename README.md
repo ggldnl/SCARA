@@ -32,9 +32,14 @@ The original project utilized a DEVIA board, which is an Arduino Zero with built
 
 ## Examples
 
-## Tutorials
+TODO
 
-The assembly tutorial can be found [here](https://instructions.online/?id=12092-scara).
+## Assembly instructions
+
+<p align="center">
+  <img src="media/cadasio.png"/>
+  <p align="center"> <a href="https://instructions.online/?id=12092-scara">Assembly instructions</a></p>
+</p>
 
 ## TODO
 
