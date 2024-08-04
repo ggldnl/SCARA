@@ -45,3 +45,4 @@ TODO
 
 - [ ] Design a universal mounting block to attach tools to the forearm
 - [ ] Forget AccelStepper/MobaTools and write your own library to simultaneously control multiple steppers
+- [ ] Add forearm calibration endstop
