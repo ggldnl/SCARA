@@ -36,13 +36,40 @@ TODO
 
 ## 3D printing
 
-[![Open on Makerworld](https://gist.github.com/ggldnl/0cb170e629d8188959e9c26c36bc32bd#file-button_makerworld-png)](https://makerworld.com/en/models/572256#profileId-492414)
+<p align="center">
+  <a href="https://makerworld.com/en/models/572256#profileId-492414">
+    <img src="https://gist.githubusercontent.com/ggldnl/0cb170e629d8188959e9c26c36bc32bd/raw/button_makerworld.png" alt="Open on Makerworld"/>
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://www.thingiverse.com/">
+    <img src="https://gist.githubusercontent.com/ggldnl/0cb170e629d8188959e9c26c36bc32bd/raw/button_thingiverse.png" alt="Open on Thingiverse"/>
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://www.printables.com/en">
+    <img src="https://gist.githubusercontent.com/ggldnl/0cb170e629d8188959e9c26c36bc32bd/raw/button_printables.png" alt="Open on Printables"/>
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://cults3d.com/en">
+    <img src="https://gist.githubusercontent.com/ggldnl/0cb170e629d8188959e9c26c36bc32bd/raw/button_cultsd.png" alt="Open on Cults3D"/>
+  </a>
+</p>
 
 ## Assembly instructions
 
 <p align="center">
   <img src="media/cadasio.png"/>
-  <p align="center"> <a href="https://instructions.online/?id=12092-scara">Assembly instructions</a></p>
+</p>
+
+<p align="center">
+  <a href="https://instructions.online/?id=12092-scara">
+    <img src="https://gist.githubusercontent.com/ggldnl/0cb170e629d8188959e9c26c36bc32bd/raw/button_assembly-instructions.png" alt="Assembly instructions"/>
+  </a>
 </p>
 
 ## TODO
