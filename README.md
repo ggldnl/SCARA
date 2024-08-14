@@ -38,25 +38,19 @@ TODO
 
 <p align="center">
   <a href="https://makerworld.com/en/models/572256#profileId-492414">
-    <img src="https://gist.githubusercontent.com/ggldnl/0cb170e629d8188959e9c26c36bc32bd/raw/button_makerworld.png" alt="Open on Makerworld"/>
+    <img src="https://gist.githubusercontent.com/ggldnl/0cb170e629d8188959e9c26c36bc32bd/raw/button_makerworld_fixed_w200_h50.png" alt="Open on Makerworld"/>
   </a>
 </p>
 
 <p align="center">
   <a href="https://www.thingiverse.com/">
-    <img src="https://gist.githubusercontent.com/ggldnl/0cb170e629d8188959e9c26c36bc32bd/raw/button_thingiverse.png" alt="Open on Thingiverse"/>
+    <img src="https://gist.githubusercontent.com/ggldnl/0cb170e629d8188959e9c26c36bc32bd/raw/button_thingiverse_fixed_w200_h50.png" alt="Open on Thingiverse"/>
   </a>
 </p>
 
 <p align="center">
   <a href="https://www.printables.com/en">
-    <img src="https://gist.githubusercontent.com/ggldnl/0cb170e629d8188959e9c26c36bc32bd/raw/button_printables.png" alt="Open on Printables"/>
-  </a>
-</p>
-
-<p align="center">
-  <a href="https://cults3d.com/en">
-    <img src="https://gist.githubusercontent.com/ggldnl/0cb170e629d8188959e9c26c36bc32bd/raw/button_cultsd.png" alt="Open on Cults3D"/>
+    <img src="https://gist.githubusercontent.com/ggldnl/0cb170e629d8188959e9c26c36bc32bd/raw/button_printables_fixed_w200_h50.png" alt="Open on Printables"/>
   </a>
 </p>
 
@@ -68,7 +62,7 @@ TODO
 
 <p align="center">
   <a href="https://instructions.online/?id=12092-scara">
-    <img src="https://gist.githubusercontent.com/ggldnl/0cb170e629d8188959e9c26c36bc32bd/raw/button_assembly-instructions.png" alt="Assembly instructions"/>
+    <img src="https://gist.githubusercontent.com/ggldnl/0cb170e629d8188959e9c26c36bc32bd/raw/button_assembly-instructions_fixed_w300_h50.png" alt="Assembly instructions"/>
   </a>
 </p>
 
