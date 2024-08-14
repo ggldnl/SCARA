@@ -34,6 +34,10 @@ The original project utilized a DEVIA board, which is an Arduino Zero with built
 
 TODO
 
+## 3D printing
+
+[![Open on Makerworld](https://gist.github.com/ggldnl/0cb170e629d8188959e9c26c36bc32bd#file-button_makerworld-png)](https://makerworld.com/en/models/572256#profileId-492414)
+
 ## Assembly instructions
 
 <p align="center">
