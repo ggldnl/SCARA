@@ -43,7 +43,7 @@ TODO
 </p>
 
 <p align="center">
-  <a href="https://www.thingiverse.com/">
+  <a href="https://www.thingiverse.com/thing:6743905">
     <img src="https://gist.githubusercontent.com/ggldnl/0cb170e629d8188959e9c26c36bc32bd/raw/button_thingiverse_fixed_w200_h50.png" alt="Open on Thingiverse"/>
   </a>
 </p>
