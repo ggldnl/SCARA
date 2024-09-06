@@ -56,6 +56,8 @@ TODO
 
 ## Assembly instructions
 
+Refer [here](/hardware/BOM.md) for the Bill of Materials and some notes on what you will need.
+
 <p align="center">
   <img src="media/cadasio.png"/>
 </p>
@@ -71,3 +73,4 @@ TODO
 - [ ] Design a universal mounting block to attach tools to the forearm
 - [ ] Forget AccelStepper/MobaTools and write your own library to simultaneously control multiple steppers
 - [ ] Add forearm calibration endstop
+- [ ] Complete the BOM with the list of M3 screws needed
