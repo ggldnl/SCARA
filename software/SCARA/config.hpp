@@ -62,10 +62,12 @@ const float L2 = 80; // Link 3 length in mm
 const float JOINT_1_MIN_LIMIT = 0;
 const float JOINT_1_MAX_LIMIT = 200;  // 200 mm
 
-const float JOINT_2_MIN_LIMIT = 0;
-const float JOINT_2_MAX_LIMIT = 90;
+// The second joint angle should be within the [-pi/2, +pi/2] range
+const float JOINT_2_MIN_LIMIT = -M_PI / 2;
+const float JOINT_2_MAX_LIMIT = M_PI / 2;
 
-const float JOINT_3_MIN_LIMIT = 0;
-const float JOINT_3_MAX_LIMIT = 3.14;
+// The third joint angle should be within the [-8pi/9, +8pi/9] range
+const float JOINT_3_MIN_LIMIT = -(8 * M_PI) / 9;
+const float JOINT_3_MAX_LIMIT = (8 * M_PI) / 9;
 
 #endif // CONFIG_HPP

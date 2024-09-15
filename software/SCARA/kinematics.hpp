@@ -35,7 +35,7 @@ bool inverseKinematics(float x, float y, float z, float &q1, float &q2, float &q
   float A = L2 * c3 + L1;
   float B_p = L2 * s3_p;
   float q2_p = atan2(y, x) - atan2(B_p, A);
-  
+
   /*
   float c2_p = (A * x + B_p * y);
   float s2_p = (-B_p * y - A * x);
@@ -46,7 +46,15 @@ bool inverseKinematics(float x, float y, float z, float &q1, float &q2, float &q
   q2 = q2_p;
   q3 = q3_p;
 
+  // The second joint angle should be within the [-pi/2, +pi/2] range
+  if (q2 < JOINT_2_MIN_LIMIT || q2 > JOINT_2_MAX_LIMIT)
+    return false;
+
+  // The third joint angle should be within the [-8pi/9, +8pi/9] range
+  if (q3 < JOINT_3_MIN_LIMIT || q3 > JOINT_3_MAX_LIMIT)
+    return false;
+
   return true;
 }
 
-#endif // KINEMATICS_HPP
+#endif  // KINEMATICS_HPP
