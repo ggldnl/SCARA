@@ -26,7 +26,7 @@ Total: 94.84 (omitting heat set inserts and locknuts)
 - Keep in mind that the cost per unit, and consequently the total cost, may vary depending on where you source the parts. For this reason I have not included sourcing links. The listed unit prices reflect now much I paid for each item.
 - I did not include zip ties, spiral wraps for the cables and the labels (for which you will also need a labeling machine).
 - The aluminum rods I bought are hollow, but this doesn't matter. It's just what was available at the time.
-- I added a 12V fan to cool down the stepper drivers but this is totally optional and thus omitted from the BOM.
+- I added a 12V fan to cool down the stepper drivers but this is totally optional and thus omitted from the BOM. The fan was too loud so I also added a step down to decrease the voltage, also optional.
 - Number of locknuts used (only where vibrations could break the arm): 8
 - Number of heat set inserts used: 24
 - Complete list of M2 screws used: 6x M2x16 screw + 6x M2 nuts to keep the micro switches in place 
