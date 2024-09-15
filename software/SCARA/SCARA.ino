@@ -1,48 +1,105 @@
-#include <MobaTools.h>
-#include "config.h"
+#include "config.hpp"
+#include "logger.hpp"
+#include "stepper.hpp"
+#include "button.hpp"
+#include "kinematics.hpp"
 
-// Create stepper motor instances for X, Y, and A axes
-MoToStepper motor_1(MOTOR_1_STEPS_PER_REVOLUTION, STEPDIR);
-MoToStepper motor_2(MOTOR_2_STEPS_PER_REVOLUTION, STEPDIR);
-MoToStepper motor_3(MOTOR_3_STEPS_PER_REVOLUTION, STEPDIR);
+
+// Define the steppers
+StepperMotor stepper1(STEPPER_1_STEP_PIN, STEPPER_1_DIR_PIN, STEPPER_1_MAX_ACCEL);
+StepperMotor stepper2(STEPPER_2_STEP_PIN, STEPPER_2_DIR_PIN, STEPPER_2_MAX_ACCEL);
+StepperMotor stepper3(STEPPER_3_STEP_PIN, STEPPER_3_DIR_PIN, STEPPER_3_MAX_ACCEL);
+
+// Define the buttons
+Button button1(STEPPER_1_LIMIT_SWITCH_PIN);
+Button button2(STEPPER_2_LIMIT_SWITCH_PIN);
+Button button3(STEPPER_3_LIMIT_SWITCH_PIN);
 
 
 void setup() {
 
+  delay(2000);
+
+  // Initialize serial communication
   Serial.begin(115200);
 
-  // Initialize the enable pin
-  pinMode(ENABLE, OUTPUT);
-  digitalWrite(ENABLE, HIGH);  // Setup the motors with the CNC shield disabled
+  // Set log level to DEBUG
+  Logger::setLogLevel(Logger::DEBUG);
 
   // Initialize the limit switch pins
-  pinMode(MOTOR_1_LIMIT_SWITCH_PIN, INPUT_PULLUP);
-  pinMode(MOTOR_2_LIMIT_SWITCH_PIN, INPUT_PULLUP);
-  pinMode(MOTOR_3_LIMIT_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(STEPPER_1_LIMIT_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(STEPPER_2_LIMIT_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(STEPPER_3_LIMIT_SWITCH_PIN, INPUT_PULLUP);
+  Logger::debug("Set up limit switches.");
 
-  // Initialize the stepper motors
-  Serial.println("[INFO] Initializing the stepper motors");
-
-  motor_1.attach(MOTOR_1_STEP_PIN, MOTOR_1_DIR_PIN);
-  motor_2.attach(MOTOR_2_STEP_PIN, MOTOR_2_DIR_PIN);
-  motor_3.attach(MOTOR_3_STEP_PIN, MOTOR_3_DIR_PIN);
-
-  // Setup speed and ramp
-  setupSpeedAndRamp();
-
-  // Enable the CNC shield
-  Serial.println("[INFO] Enabling the board");
+  // Enable the board
+  pinMode(ENABLE, OUTPUT);
   digitalWrite(ENABLE, LOW);
+  Logger::info("Board enabled.");
 
-  delay(1000);
+  // Home axis
+  homeAll();
+  Logger::info("All axis homed.");
+  
+  // Reach cartesian point
+  reachCartesian(120, 20, 100);
+}
 
-  // Perform the homing sequence
-  homeAllAxes();
+/* -------------------------------- Movement -------------------------------- */
 
-  delay(1000);
+void moveAll(
+    int steps1, 
+    int steps2, 
+    int steps3, 
+    int minDelay = MIN_PULSE_DELAY,
+    int maxDelay = MAX_PULSE_DELAY, 
+    int incr = INCREMENT
+  ) {
 
-  // Move to cartesian position (x, y, z)
-  reachCartesian(40, 40, 0);
+  Logger::info("Moving to s1={}, s2={}, s3={}.", steps1, steps2, steps3);
+
+  stepper1.setTargetPosition(steps1);
+  stepper2.setTargetPosition(steps2);
+  stepper3.setTargetPosition(steps3);
+
+  // Find the minimum acceleration rate across all steppers
+  int minAccRate = min(stepper1.getAccRate(), min(stepper2.getAccRate(), stepper3.getAccRate()));
+
+  // Determine the total steps (maximum) to synchronize the movement
+  int maxTotalSteps = max(steps1, max(steps2, steps3));
+
+  int del = maxDelay;  // Maximum delay = minimum acceleration
+  for (int i = 0; i < maxTotalSteps; i++) {
+    
+    // We need to take more steps than the steps required for an acceleration and deceleration phase
+    if (maxTotalSteps > (2 * minAccRate + 1)) {
+      if (i < minAccRate && del - incr >= minDelay) {
+        // Acceleration phase
+        del -= incr;
+      } else if (i > (maxTotalSteps - minAccRate) && del + incr <= maxDelay) {
+        // Deceleration phase
+        del += incr;
+      }
+
+    // Not enough steps for an acceleration and deceleration phase
+    } else {
+      if (i < maxTotalSteps / 2 && del - incr >= minDelay) {
+        // Accelerate until halfway
+        del -= incr;
+      } else if (i > ((maxTotalSteps + (maxTotalSteps % 2)) / 2) && del + incr <= maxDelay) {
+        // Decelerate until end
+        del += incr;
+      }
+    }
+
+    // Step the motors
+    stepper1.step();
+    stepper2.step();
+    stepper3.step();
+
+    // Apply the delay
+    delayMicroseconds(del);
+  }
 }
 
 void reachCartesian(float x, float y, float z) {
@@ -53,6 +110,8 @@ void reachCartesian(float x, float y, float z) {
    *  3. Move by the steps;
    */
 
+  Logger::info("Reaching cartesian point ({}, {}, {})", x, y, z);
+
   // Variables to store the joint angles
   float q1, q2, q3;
   bool result = inverseKinematics(x, y, z, q1, q2, q3);
@@ -60,207 +119,88 @@ void reachCartesian(float x, float y, float z) {
   // If the point is reachable
   if (result) {
 
-    // Print the cartesian point
-    Serial.print("[INFO] Reaching cartesian point: (");
-    Serial.print(x);
-    Serial.print(", ");
-    Serial.print(y);
-    Serial.print(", ");
-    Serial.print(z);
-    Serial.println(")");
-    
-    // Print the computed joint values
-    Serial.print("[INFO] Target joint values: ");
-    Serial.print(q1);
-    Serial.print(", ");
-    Serial.print(q2);
-    Serial.print(", ");
-    Serial.println(q3);
-
     reachJoint(q1, q2, q3);
   
-    Serial.println("[INFO] Target cartesian point reached");
-
   } else {
 
-    // Print the cartesian point
-    Serial.print("[WARN] Cartesian point (");
-    Serial.print(x);
-    Serial.print(", ");
-    Serial.print(y);
-    Serial.print(", ");
-    Serial.print(z);
-    Serial.println(") is not reachable");
-
+    Logger::error("Unable to reach cartesian point ({}, {}, {})", x, y, z);
   }
 }
 
-void reachJoint(float joint_1, float joint_2, float joint_3) {
+void reachJoint(float q1, float q2, float q3) {
   /**
-   *  Reach the target configuration in joint space:
-   *  2. Translate joint values to steps;
-   *  3. Move by the steps;
+   * Reach the target joint configuration:
+   * 1. Translate joint values to steps;
+   * 2. Move by the steps;
    */
 
-  float steps_1 = joint_1 * JOINT_1_REDUCTION * MOTOR_1_MICROSTEPPING;
-  float steps_3 = joint_3 * JOINT_3_REDUCTION * MOTOR_3_MICROSTEPPING;
+  Logger::info("Reaching joint configuration q1={}, q2={}, q3={}.", q1, degrees(q2), degrees(q3));
+
+  int steps1 = q1 / JOINT_1_DIST_PER_STEP;
+  int steps2 = q2 * JOINT_2_STEPS_PER_RAD;
   
-  // To move joint 2 we need to combine the motion of motor 2 and 3
-  float steps_2 = 0; // joint_2 * JOINT_2_REDUCTION * MOTOR_2_MICROSTEPPING;
+  // The third joint is a special case since we need to adjust it by a factor
+  // to account for the variation produced by the movement of the second joint.
+  int steps3 = q3 * JOINT_3_STEPS_PER_RAD;
+  steps3 += q2/2 * JOINT_3_STEPS_PER_RAD;
 
-  // Print the computed joint values
-  Serial.print("[INFO] Target steps: ");
-  Serial.print(steps_1);
-  Serial.print(", ");
-  Serial.print(steps_2);
-  Serial.print(", ");
-  Serial.println(steps_3);
+  moveAll(steps1, steps2, steps3);
 
-  // stepAll(steps_1, steps_2, steps_3);
+  // Logger::debug("Current position: p1={}, p2={}, p3={}", stepper1.getCurrentPosition(), stepper2.getCurrentPosition(), stepper3.getCurrentPosition());
 }
 
-void stepAll(long steps_1, long steps_2, long steps_3) {
+/* --------------------------------- Homing --------------------------------- */
+
+void homeAxis(StepperMotor& stepper, Button& limitSwitch, int del = MAX_PULSE_DELAY, int homingSteps = HOMING_STEPS, int postHomingSteps = POST_HOMING_STEPS) {
   /**
-   *  Move a relative displacement at the current speed, blocking until the move is done.
-   */
-  
-  // Move the steppers
-  motor_1.write(steps_1);
-  motor_2.write(steps_2);
-  motor_3.write(steps_3);
-
-  while(isMoving()); // Wait for the movements to complete
-}
-
-bool isMoving(void) {
-  /** 
-   *  Return true if any one of the drivers are still moving.
+   * Home the specified axis by moving the motor with constant speed until button fires.
+   * The motor stops after #homingSteps anyway. We can't use a bang-coast-bang speed profile
+   * since we don't know in advance how many steps we need to take. We use the maximum
+   * speed pulse delay to produce the smallest speed (better safe than sorrow).
    */
 
-  return motor_1.moving() || motor_2.moving() || motor_3.moving();
-}
+  stepper.setTargetPosition(-homingSteps);
+  while(!stepper.isAtTarget()) {
 
-/* ---------------------------------- Homing ---------------------------------- */
+    if (limitSwitch.pressed()) {
+      Logger::warn("Button {} pressed.", limitSwitch.getPin());
+      break;
+    }
 
-void homeAllAxes() {
-  /**
-   * Homing sequence for all axes
-   */
-
-  Serial.println("[INFO] Starting homing sequence");
-  
-  // Change speed and ramp length
-  setupHomingSpeedAndRamp();
-
-  // Home each motor
-  homeMotor(motor_1, MOTOR_1_LIMIT_SWITCH_PIN);
-  // homeMotor(motor_2, MOTOR_2_LIMIT_SWITCH_PIN);
-  // homeMotor(motor_3, MOTOR_3_LIMIT_SWITCH_PIN);
-
-  // Go back to previous speed and ramp values
-  setupSpeedAndRamp();
-
-  Serial.println("[INFO] Homing sequence completed");
-}
-
-void homeMotor(MoToStepper &motor, byte limitSwitchPin) {
-  /**
-   * Homing sequence for a single axis
-   */
-
-  // motor.setSpeed(homingSpeed);  // Set a slow speed for homing
-  // motor.setRampLen(homingRampLength);
-  
-  motor.write(-10000);  // Move the motor in the negative direction by A LOT
-
-  // Wait until the limit switch is triggered
-  while (digitalRead(limitSwitchPin) == HIGH);
-  Serial.print("[WARN] Limit switch ");
-  Serial.print(limitSwitchPin);
-  Serial.println(" triggered");
-
-  // Stop the motor
-  motor.stop();
-
-  // Set the current position to zero
-  motor.setZero();
-
-  // Move the motor out of the limit switch
-  motor.write(POST_HOMING_STEPS); 
-}
-
-/* --------------------------- Speed and ramp setup --------------------------- */
-
-void setupSpeedAndRamp() {
-
-  // Set the speed of the stepper motors
-  motor_1.setSpeed(MOTOR_1_SPEED);
-  motor_2.setSpeed(MOTOR_2_SPEED);
-  motor_3.setSpeed(MOTOR_3_SPEED);
-
-  // Set the ramp length
-  motor_1.setRampLen(MOTOR_1_RAMP_LENGTH);
-  motor_2.setRampLen(MOTOR_2_RAMP_LENGTH);
-  motor_3.setRampLen(MOTOR_3_RAMP_LENGTH);
-}
-
-void setupHomingSpeedAndRamp() {
-
-  // Set the speed of the stepper motors
-  motor_1.setSpeed(MOTOR_1_HOMING_SPEED);
-  motor_2.setSpeed(MOTOR_2_HOMING_SPEED);
-  motor_3.setSpeed(MOTOR_3_HOMING_SPEED);
-
-  // Set the ramp length
-  motor_1.setRampLen(MOTOR_1_HOMING_RAMP_LENGTH);
-  motor_2.setRampLen(MOTOR_2_HOMING_RAMP_LENGTH);
-  motor_3.setRampLen(MOTOR_3_HOMING_RAMP_LENGTH);
-}
-
-/* ---------------------------- Inverse Kinematics ---------------------------- */
-
-bool isReachable(float x, float y, float z) {
-  /**
-   * TODO better define the workspace
-   * Check if a cartesian point is reachable
-   */
-
-  float distance = sqrt(x * x + y * y);
-  return distance <= (L1 + L2) && JOINT_1_MIN_LIMIT <= z && z <= JOINT_1_MAX_LIMIT;
-}
-
-bool inverseKinematics(float x, float y, float z, float &q1, float &q2, float &q3) {
-  /**
-    * Compute the inverse kinematics for a r
-    */
-
-  if (!isReachable(x, y, z)) {
-    return false;  // The point is out of reach
+    // Perform a step with constant velocity
+    stepper.step();
+    delayMicroseconds(del);
   }
+  Logger::debug("Endstop {} reached.", limitSwitch.getPin());
 
-  // First joint (directly determined by z)
-  q1 = z;
+  stepper.setCurrentPosition(0);
+  stepper.setTargetPosition(postHomingSteps);
 
-  // Third joint (calculating c3 and s3)
-  float c3 = (x * x + y * y) / (L2 * L2 + L1 * L1 + 2 * L1 * L2);
-  float s3_p = sqrt(1 - c3 * c3);
-  float q3_p = atan2(s3_p, c3);
+  while(!stepper.isAtTarget()) {
+    stepper.step();
+    delayMicroseconds(del);
+  }
+  Logger::debug("Stepper currently {} steps above endstop {}", stepper.getCurrentPosition(), limitSwitch.getPin());
 
-  // Second joint (calculating q2 for the positive s3 solution)
-  float A = L2 * c3 + L1;
-  float B_p = L2 * s3_p;
-  float c2_p = (A * x + B_p * y);
-  float s2_p = (-B_p * y - A * x);
-  float q2_p = atan2(s2_p, c2_p);
-
-  // Assign the solutions
-  q2 = q2_p;
-  q3 = q3_p;
-
-  return true;
 }
 
-/* ----------------------------------- Loop ----------------------------------- */
+void homeAll() {
+  /**
+   * Home all the axis.
+   */
+
+  homeAxis(stepper1, button1);
+  Logger::debug("Axis 0 homed.");
+
+  // homeAxis(stepper2, button2);
+  Logger::debug("Axis 1 homed.");
+
+  // homeAxis(stepper3, button3);
+  Logger::debug("Axis 2 homed.");
+
+}
+
+/* ---------------------------------- Loop ---------------------------------- */
 
 void loop() {
   // Nothing to do here

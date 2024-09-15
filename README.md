@@ -34,11 +34,38 @@ The original project utilized a DEVIA board, which is an Arduino Zero with built
 
 TODO
 
+## 3D printing
+
+<p align="center">
+  <a href="https://makerworld.com/en/models/572256#profileId-492414">
+    <img src="https://gist.githubusercontent.com/ggldnl/0cb170e629d8188959e9c26c36bc32bd/raw/button_makerworld_fixed_w200_h50.png" alt="Open on Makerworld"/>
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://www.thingiverse.com/thing:6743905">
+    <img src="https://gist.githubusercontent.com/ggldnl/0cb170e629d8188959e9c26c36bc32bd/raw/button_thingiverse_fixed_w200_h50.png" alt="Open on Thingiverse"/>
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://www.printables.com/en">
+    <img src="https://gist.githubusercontent.com/ggldnl/0cb170e629d8188959e9c26c36bc32bd/raw/button_printables_fixed_w200_h50.png" alt="Open on Printables"/>
+  </a>
+</p>
+
 ## Assembly instructions
+
+Refer [here](/hardware/BOM.md) for the Bill of Materials and some notes on what you will need.
 
 <p align="center">
   <img src="media/cadasio.png"/>
-  <p align="center"> <a href="https://instructions.online/?id=12092-scara">Assembly instructions</a></p>
+</p>
+
+<p align="center">
+  <a href="https://instructions.online/?id=12092-scara">
+    <img src="https://gist.githubusercontent.com/ggldnl/0cb170e629d8188959e9c26c36bc32bd/raw/button_assembly-instructions_fixed_w300_h50.png" alt="Assembly instructions"/>
+  </a>
 </p>
 
 ## TODO
@@ -46,3 +73,4 @@ TODO
 - [ ] Design a universal mounting block to attach tools to the forearm
 - [ ] Forget AccelStepper/MobaTools and write your own library to simultaneously control multiple steppers
 - [ ] Add forearm calibration endstop
+- [ ] Complete the BOM with the list of M3 screws needed
