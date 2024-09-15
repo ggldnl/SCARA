@@ -97,8 +97,8 @@ private:
          */
 
         switch (level) {
-            case INFO:  return "INFO";
-            case WARN:  return "WARN";
+            case INFO:  return "INFO ";
+            case WARN:  return "WARN ";
             case DEBUG: return "DEBUG";
             case ERROR: return "ERROR";
             default:    return "UNKNOWN";
