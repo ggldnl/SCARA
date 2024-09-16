@@ -75,3 +75,4 @@ Refer [here](/hardware/BOM.md) for the Bill of Materials and some notes on what 
 - [x] Forget AccelStepper/MobaTools and write your own library to simultaneously control multiple steppers
 - [ ] Add forearm calibration endstop
 - [x] Complete the BOM with the list of M3 screws needed
+- [ ] Add schematics
