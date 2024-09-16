@@ -26,9 +26,21 @@ Total: 94.84 (omitting heat set inserts and locknuts)
 - Keep in mind that the cost per unit, and consequently the total cost, may vary depending on where you source the parts. For this reason I have not included sourcing links. The listed unit prices reflect now much I paid for each item.
 - I did not include zip ties, spiral wraps for the cables and the labels (for which you will also need a labeling machine).
 - The aluminum rods I bought are hollow, but this doesn't matter. It's just what was available at the time.
-- I added a 12V fan to cool down the stepper drivers but this is totally optional and thus omitted from the BOM. The fan was too loud so I also added a step down to decrease the voltage, also optional.
+- I added a 12V fan to cool down the stepper drivers but this is totally optional and thus omitted from the BOM. The fan was too loud so I also added a step down converter to decrease the voltage, also optional. If you don't have a step down laying around you can also:
+    1. use the fan connecting it directly to the power jack if it's 12V;
+    2. use a variable resistor to create a voltage divider and lower its input voltage; this is kind of sketchy and the resistor can get very hot, not recommended.
+    I provided 3 versions of the control box lid to accomodate each case.0
 - Number of locknuts used (only where vibrations could break the arm): 8
 - Number of heat set inserts used: 24
-- Complete list of M2 screws used: 6x M2x16 screw + 6x M2 nuts to keep the micro switches in place 
-- Complete list of M3 screws used:
-    
+- Complete list of M2 screws and nuts used: 6x M2x16 screw + 6x M2 nuts to keep the micro switches in place 
+- Complete list of M3 screws and nuts used:
+        2x M3x35
+        3x M3x10 (control box lid)
+        2x M3x10 (mount arduino to control box)
+        2x M3x10 (join control box to base)
+        5x M3x10 (forearm)
+        10x M3x8 (two z_base and lead screw nut assembly)
+        6x M3x16 (limit switches) 
+        8x M3 locknuts (limit switches and bottom of the forearm)
+        optional - 4x M3x18 (mount fan)
+        optional - 2x M3x16 (mount step down voltage regulator)
