@@ -74,4 +74,5 @@ Refer [here](/hardware/BOM.md) for the Bill of Materials and some notes on what 
 - [ ] Design a universal mounting block to attach tools to the forearm
 - [x] Forget AccelStepper/MobaTools and write your own library to simultaneously control multiple steppers
 - [ ] Add forearm calibration endstop
-- [ ] Complete the BOM with the list of M3 screws needed
+- [x] Complete the BOM with the list of M3 screws needed
+- [ ] Add schematics
