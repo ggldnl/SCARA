@@ -26,6 +26,13 @@ struct IKSolution {
 // Structure to hold the steps for each motor
 struct Steps {
     int s1, s2, s3;  // Steps
+
+    // Default constructor
+    Steps() : s1(0), s2(0), s3(0) {}
+
+    // Constructor to initialize the Point
+    Steps(int _s1, int _s2, int _s3) : s1(_s1), s2(_s2), s3(_s3) {}
+
 };
 
 #endif

@@ -15,13 +15,15 @@ const byte ENABLE = 8;  // active-low (i.e. LOW turns on the drivers)
 
 // Speed profile
 
-const int STEPPER_1_MAX_ACCEL = 800;
-const int STEPPER_2_MAX_ACCEL = 800;
-const int STEPPER_3_MAX_ACCEL = 800;
-
+// Low level control of the actuators
 const int MIN_PULSE_DELAY = 200;
 const int MAX_PULSE_DELAY = 800;
+const int ACC_RATE = 800;
 const int INCREMENT = 1;
+
+// Phisically accurate velocity and acceleration measurements
+const float MAX_VELOCITY = 1e-4;
+const float ACCELERATION = 1e-10;
 
 // Endstops
 
@@ -44,23 +46,23 @@ const float STEPPER_1_STEPS_PER_REVOLUTION = 200.0;
 const float STEPPER_2_STEPS_PER_REVOLUTION = 200.0;
 const float STEPPER_3_STEPS_PER_REVOLUTION = 200.0;
 
-const float JOINT_1_LEAD = 8.0;                                 // leadscrew pitch
+const float JOINT_1_LEAD = 8.0;                                 // leadscrew pitch, mm
 const float JOINT_2_REDUCTION = (72.0 / 16.0);                  // first stage
 const float JOINT_3_REDUCTION = (62.0 / 16.0) * (62.0 / 33.0);  // first stage * second stage
 
-const float JOINT_1_DIST_PER_STEP = (JOINT_1_LEAD / (STEPPER_1_STEPS_PER_REVOLUTION * STEPPER_1_MICROSTEPPING));
+const float JOINT_1_DIST_PER_STEP = (JOINT_1_LEAD / (STEPPER_1_STEPS_PER_REVOLUTION * STEPPER_1_MICROSTEPPING)) / 1000.0;         // m
 const float JOINT_2_STEPS_PER_RAD = (STEPPER_2_STEPS_PER_REVOLUTION * STEPPER_2_MICROSTEPPING / (2 * M_PI)) * JOINT_2_REDUCTION; 
 const float JOINT_3_STEPS_PER_RAD = (STEPPER_3_STEPS_PER_REVOLUTION * STEPPER_3_MICROSTEPPING / (2 * M_PI)) * JOINT_3_REDUCTION;
 
 // Link lenghts
 
-const float L1 = 94; // Link 2 length in mm
-const float L2 = 80; // Link 3 length in mm
+const float L1 = 0.094; // Link 2 length in mm
+const float L2 = 0.080; // Link 3 length in mm
 
 // Joint limits
 
 const float JOINT_1_MIN_LIMIT = 0;
-const float JOINT_1_MAX_LIMIT = 200;  // 200 mm
+const float JOINT_1_MAX_LIMIT = 0.2;  // 200 mm, 0.2 m
 
 // The second joint angle should be within the [-pi/2, +pi/2] range
 const float JOINT_2_MIN_LIMIT = -M_PI / 2;

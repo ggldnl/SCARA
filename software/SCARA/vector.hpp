@@ -20,11 +20,65 @@ private:
     }
 
 public:
-    // Constructor: initialize vector with a small capacity
-    Vector() {
+
+    Vector() : Vector(2) {}
+
+    Vector(size_t _capacity) {
         size = 0;
-        capacity = 2;                     // Start with a small capacity
+        capacity = _capacity;             // Start with a small capacity
         data = new T[capacity];           // Allocate initial memory
+    }
+
+    Vector(const Vector& other) : size(other.size), capacity(other.capacity) {
+        data = new T[capacity];
+        for (size_t i = 0; i < size; ++i) {
+            data[i] = other.data[i];
+        }
+    }
+
+    Vector(Vector&& other) noexcept : data(other.data), size(other.size), capacity(other.capacity) {
+        /**
+         * Move constructor
+         */
+        other.data = nullptr;  // Transfer ownership
+        other.size = 0;
+        other.capacity = 0;
+    }
+
+    Vector& operator=(Vector&& other) noexcept {
+        /**
+         * Move assignment operator
+         */
+        if (this != &other) {
+            delete[] data; // Clean up current resources
+
+            // Transfer ownership
+            data = other.data;
+            size = other.size;
+            capacity = other.capacity;
+
+            other.data = nullptr;
+            other.size = 0;
+            other.capacity = 0;
+        }
+        return *this;
+    }
+
+    Vector& operator=(const Vector& other) {
+
+        if (this == &other) 
+            return *this;
+        
+        delete[] data;
+        size = other.size;
+        capacity = other.capacity;  
+        data = new T[capacity];
+        
+        for (size_t i = 0; i < size; ++i) {
+            data[i] = other.data[i];
+        }
+        
+        return *this;
     }
 
     // Destructor: free allocated memory
