@@ -16,9 +16,10 @@ Considering the situation, I decided to build my own robotic arm taking inspirat
 - endstops for each motor, essential for calibration and to recover from missed steps.
 - heat set inserts to avoid screwing directly into the plastic.
 - simplified assembly for joints 2 and 3.
-- improved support for joints 2 and 3 from the `z_base`, now composed of two pieces.
-- control box for better organization.
+- improved support for joints 2 and 3 from the `z_base`, now consisting of two pieces.
+- control box for better organization, with optional fan to keep the stepper driver cool.
 - universal tool mounting point (not limited to the previous servo motor insert).
+- cleaner code with no external dependency (I wrote all the libraries I used), modular and easy to read and understand .
 
 Below are two renders of the arm in Fusion 360; the left image shows it in the standard material and the right one has colored plastic components that match the actual arm I built.
 
@@ -71,6 +72,7 @@ Refer [here](/hardware/BOM.md) for the Bill of Materials and some notes on what 
 ## TODO
 
 - [ ] Design a universal mounting block to attach tools to the forearm
-- [ ] Forget AccelStepper/MobaTools and write your own library to simultaneously control multiple steppers
+- [x] Forget AccelStepper/MobaTools and write your own library to simultaneously control multiple steppers
 - [ ] Add forearm calibration endstop
-- [ ] Complete the BOM with the list of M3 screws needed
+- [x] Complete the BOM with the list of M3 screws needed
+- [ ] Add schematics
