@@ -19,7 +19,7 @@
 | Locknuts              | 1        | See notes                                | € 0.06          |
 | Micro switches        | 3        |                                          | € 0.22          |
 
-Total: 94.84 (omitting heat set inserts and locknuts)
+Total: 150.8 (omitting heat set inserts and locknuts)
 
 ## Notes
 
