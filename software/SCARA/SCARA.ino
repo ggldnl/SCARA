@@ -6,6 +6,14 @@
 #include "structs.hpp"
 #include "kinematics.hpp"
 
+// Function declarations
+Vector<float> convertVelocity(Vector<float>&);
+void executeTrajectory(Vector<Point>&, Vector<float>&, const float = MIN_VELOCITY_STEPS_S, const float = MAX_VELOCITY_STEPS_S, const float = ACCELERATION);
+void reachCartesian(const Point&);
+void reachJoint(const IKSolution&);
+void moveAll();
+Steps IKSolution2Steps(const IKSolution&);
+
 
 // Define the steppers
 StepperMotor stepper1(STEPPER_1_STEP_PIN, STEPPER_1_DIR_PIN);
@@ -17,8 +25,9 @@ Button button1(STEPPER_1_LIMIT_SWITCH_PIN);
 Button button2(STEPPER_2_LIMIT_SWITCH_PIN);
 Button button3(STEPPER_3_LIMIT_SWITCH_PIN);
 
-// Define the trajectory to follow
+// Define the trajectory to follow and the desired end effector velocity (m/s)
 Vector<Point> trajectory;
+Vector<float> velocity;
 
 void setup() {
 
@@ -42,319 +51,140 @@ void setup() {
   Logger::info("Board enabled.");
 
   // Home axis
-  homeAll();
+  // homeAll();
   Logger::info("All axis homed.");
-
-  /* -------------------------- Reach cartesian point ------------------------- */
-
-  /*
-  Point target(0.120, 0.020, 0.100);  // m
-  reachCartesian(target);
-  */
 
   /* --------------------------- Execute trajectory --------------------------- */
 
   // Add the points to the trajectory (square)
-  trajectory.push_back(Point(0.15536, 0.03536, 0.10000));
-  trajectory.push_back(Point(0.08464, 0.03536, 0.10000));
-  trajectory.push_back(Point(0.08464, -0.03536, 0.10000));
-  trajectory.push_back(Point(0.15536, -0.03536, 0.10000));
+  /*
+  trajectory.pushBack(Point(L1 + L2, 0.0, 0.10000));  // Reach the height with the arm fully stretched
+  trajectory.pushBack(Point(0.15536, 0.03536, 0.10000));
+  trajectory.pushBack(Point(0.08464, 0.03536, 0.10000));
+  trajectory.pushBack(Point(0.08464, -0.03536, 0.10000));
+  trajectory.pushBack(Point(0.15536, -0.03536, 0.10000));
+  */
 
-  float velocity = 0.25e-4;
+  trajectory.pushBack(Point(0.10, -0.14, 0.1));
+  trajectory.pushBack(Point(0.10, 0.0, 0.1));;
+  trajectory.pushBack(Point(0.10, 0.14, 0.1));
+
+  /*
+  trajectory.pushBack(Point(0.10, -0.14, 0.1));
+  trajectory.pushBack(Point(0.10, -0.11, 0.1));
+  trajectory.pushBack(Point(0.10, -0.08, 0.1));
+  trajectory.pushBack(Point(0.10, -0.05, 0.1));
+  trajectory.pushBack(Point(0.10, -0.02, 0.1));
+  trajectory.pushBack(Point(0.10, 0.02, 0.1));
+  trajectory.pushBack(Point(0.10, 0.05, 0.1));
+  trajectory.pushBack(Point(0.10, 0.08, 0.1));
+  trajectory.pushBack(Point(0.10, 0.11, 0.1));
+  trajectory.pushBack(Point(0.10, 0.14, 0.1));
+  */
+
+  /*
+  // End effector velocity of 0.025 m/s in all directions
+  velocity.pushBack(0.025);
+  velocity.pushBack(0.025);
+  velocity.pushBack(0.025);
+  */
+
+  velocity.pushBack(0.01);
+  velocity.pushBack(0.01);
+  velocity.pushBack(0.01);
+
   executeTrajectory(trajectory, velocity);
 
-  /* ------------------------------ Go back home ------------------------------ */
-
-  delay(2000);
-  reset();
 }
 
 /* ------------------------------ Trajectories ------------------------------ */
 
-void executeTrajectory(Vector<Point> trajectory, float velocity) {
+Vector<float> convertVelocity(Vector<float>& velocity) {
   /**
-   * Execute a trajectory (sequence of points), with a given end effector velocity:
-   *
-   * 1. For each point, compute the inverse kinematics solution.
-   *
-   * 2. Each inverse kinematics solution consists of the joint values (3 in our case).
-   *
-   * 3. We want the end effector to maintain the specified velocity. The velocity of the 
-   *      end effector is tied to the velocity of the joints by the inverse of the Jacobian.
-   *
-   * 4. For each inverse kinematics solution (configuration of the arm in joint space) we
-   *      compute the Jacobian and then the joint velocities:
-   *
-   *      v_ee = J * v_j -> v_j = J^-1 * v_ee
-   *
-   * 5. Now we have the velocity vector for each joint at each point of the trajectory.
-   *
-   * 6. Each joint velocity is expressed in m/s (for prismatic joints) or rad/s (for 
-   *      revolute joints). We need to translate them to steps/s to control the stepper motors.
-   *
-   * 7. steps/s conversion:
-   *
-   *        prismatic -> v [steps/s] = v [m/s] / (distance_per_steps [mm] * 0.001) 
-   *        revolute -> v [steps/s] = v [rad/s] * steps_per_rad [steps/rad]
-   *      
-   *      distance_per_step is JOINT_1_DIST_PER_STEP in our case
-   *      steps_per_rad are JOINT_2_STEPS_PER_RAD and JOINT_3_STEPS_PER_RAD in our case
-   *
-   * 8. Now we have the steps/s velocity for each joint. We work at a microsecond scale:
-   *
-   *      steps_per_microseond = steps_per_second / 1000000
-   * 
-   * 9. In our case, for each stepper, it's the delay between two steps that determines
-   *      the velocity. The smaller the delay, the faster the movement and vice versa.
-   *      We know how many steps each joint should take in a second (microsecond to be
-   *      precise) but we need to know how many microseconds pass between two stesp:
-   *
-   *      delay_between_steps = 1000000 / steps_per_second = 1 / steps_per_microsecond
-   *
-   * 10. Now we know the delay that we should use while moving the steppers to realize 
-   *      a certain end effector velocity. Buffer all these values for each start and 
-   *      final point couple and then use them to perform the trajectory. This way we 
-   *      compute everything beforehand and we don't waste time during the movement
-   *      with computations. 
+   * Converts the input velocity vector from m/s (or rad/s) to steps/s
    */
+  Vector<float> vector(3);
 
-  const float maxVelocity = MAX_VELOCITY;
-  const float accRate = ACCELERATION;
+  // Absolute values since the stepper motor library will use the position to 
+  // determine the direction of rotation 
+  vector.pushBack(abs(velocity[0] * JOINT_1_STEPS_PER_M));
+  vector.pushBack(abs(velocity[1] * JOINT_2_STEPS_PER_RAD));
+  vector.pushBack(abs(velocity[2] * JOINT_3_STEPS_PER_RAD));
+  
+  return vector;
+}
+
+void executeTrajectory(
+    Vector<Point>& trajectory, 
+    Vector<float>& velocity, 
+    const float restVelocity = MIN_VELOCITY_STEPS_S, 
+    const float maxVelocity = MAX_VELOCITY_STEPS_S, 
+    const float acceleration = ACCELERATION
+  ) {
 
   Vector<Steps> trajectorySteps;
+  Vector<Vector<float>> velocities;
+  Logger::debug("-------------------------------------------------");
   for (size_t i = 0; i < trajectory.getSize(); i++) {
 
     Point point = trajectory[i];
+    Logger::debug("Point {}: ({}, {}, {})", i + 1, point.x, point.y, point.z);
 
     // Compute the inverse kinematics
-    IKSolution solution;
-    bool result = inverseKinematics(point, solution);
+    IKSolution configuration;
+    bool result = inverseKinematics(point, configuration);
     if (!result) {
-      Logger::error("Point ({}, {}, {}) is not reachable.", point.x, point.y, point.z);  
+      Logger::error("Point ({}, {}, {}) is not reachable.", point.x, point.y, point.z);
       return;
     }
+    Logger::debug("Inverse kinematics solution: {}, {}, {}", configuration.q1, configuration.q2, configuration.q3);
 
     // Compute the steps it takes to reach the joint configuration
-    Steps steps = IKSolution2Steps(solution);
+    Steps steps = IKSolution2Steps(configuration);
+    Logger::debug("Steps needed: {}, {}, {}", steps.s1, steps.s2, steps.s3);
 
     // Buffer the computation
-    trajectorySteps.push_back(steps);
+    trajectorySteps.pushBack(steps);
+
+    // Transform the end effector velocity to joint velocity
+    Vector<float> jointVelocities = computeJointVelocities(configuration, velocity);
+
+    // Express the joint velocities in steps/s (from m/s or rad/s)
+    Vector<float> translatedVelocities = convertVelocity(jointVelocities);
+    Logger::debug("Joint velocities (steps/s): {}, {}, {}", translatedVelocities[0], translatedVelocities[1], translatedVelocities[2]);
+
+    // Buffer the computation
+    velocities.pushBack(translatedVelocities);
+
+    Logger::debug("-------------------------------------------------");
   }
 
-  for (size_t i = 0; i < trajectorySteps.getSize() - 1; i++) {
-  
-    Steps startSteps = trajectorySteps[i];
-    Steps endSteps = trajectorySteps[i + 1];
+  for (size_t i = 0; i < trajectorySteps.getSize(); i++) {
 
-    float initialVelocity = i == 0 ? 0 : velocity;
-    float finalVelocity = velocity;
+    Steps steps = trajectorySteps[i];
 
-    moveStraightLine(startSteps, endSteps, initialVelocity, finalVelocity, maxVelocity, accRate);
+    // Same number of elements
+    Vector<float> velocity = velocities[i];
+
+    float v1 = i == restVelocity ? 0 : velocity[0];
+    float v2 = i == restVelocity ? 0 : velocity[1];
+    float v3 = i == restVelocity ? 0 : velocity[2];
+
+    stepper1.moveToPosition(steps.s1, v1, maxVelocity, velocity[0], acceleration);
+    stepper2.moveToPosition(steps.s2, v2, maxVelocity, velocity[1], acceleration);
+    stepper3.moveToPosition(steps.s3, v3, maxVelocity, velocity[2], acceleration);
+
+    moveAll();
   }
-}
-
-void moveStraightLine(const Steps& startSteps, const Steps& endSteps, float vinit, float vfinal, float vmax, float acc) {
-  /**
-   * Move in a straight line from the current position (in steps) to the final position (in steps). 
-   * We follow a trapezoidal speed profile. In this scenario, motion is divided into three phases:
-   *
-   * 1. Acceleration phase: the velocity increases linearly from the initial velocity (vinit) to the
-   *    maximum velocity (vmax) at a constant acceleration (acc);
-   *
-   * 2. Constant velocity phase: the velocity remains constant at its peek (vmax);
-   *
-   * 3. Deceleration phase: the velocity decreases from the maximum (vmax) to the final value (vfin)
-   *    at a constant deceleration (acc).
-   *
-   * If the distance to cover is too short for a constant velocity phase, the motion becomes triangular
-   * (no constant velocity phase). In this case the maximum velocity (vmax) is not reached.
-   *
-   * The distance covered during acceleration (dacc), constant velocity (dconst) and deceleration (ddec)
-   * phases can be found this way:
-   *
-   * 1. dacc   = (vmax^2 - vinit^2) / (2*acc)
-   *
-   * 2. ddec   = (vmax^2 - vfin^2) / (2*acc)
-   *
-   * 3. dconst = L - dacc - ddec
-   *
-   * with L being the distance to cover (length of the linear path).
-   * 
-   * We take only the dacc, dconst and ddec as arguments and move all the steppers accordingly,
-   * without performing any computation during movement other than a simple linear
-   * interpolation and some multiplication. The input velocities are specified
-   * in steps/s and the acceleration in steps/s^2.
-   *
-   * We don’t need intermediate velocity computations since the trapezoidal velocity profile 
-   * will handle the transition from initial to final velocities within each segment.
-   */
-
-  Logger::debug("Steps {}, {}, {} -> {}, {}, {}", startSteps.s1, startSteps.s2, startSteps.s3, endSteps.s1, endSteps.s2, endSteps.s3);
-
-  // Calculate the total number of steps to move in each joint
-  int steps_total_1 = abs(endSteps.s1 - startSteps.s1);
-  int steps_total_2 = abs(endSteps.s2 - startSteps.s2);
-  int steps_total_3 = abs(endSteps.s3 - startSteps.s3);
-
-  stepper1.setTargetPosition(endSteps.s1);
-  stepper2.setTargetPosition(endSteps.s2);
-  stepper3.setTargetPosition(endSteps.s3);
-
-  // Compute the maximum number of steps for synchronization
-  int max_steps = max(steps_total_1, max(steps_total_2, steps_total_3));
-
-  // Compute the distances covered during acceleration and deceleration
-  float d_acc = (vmax * vmax - vinit * vinit) / (2 * acc);
-  float d_dec = (vmax * vmax - vfinal * vfinal) / (2 * acc);
-  float d_const = max_steps - d_acc - d_dec;
-
-  if (max_steps < d_acc + d_dec) {
-    d_const = 0;
-    d_acc = max_steps / 2;
-    d_dec = max_steps / 2;
-  }
-
-  // Compute delays for each phase (in microseconds)
-  int delay_init = 1000000 / vinit;
-  int delay_max = 1000000 / vmax;
-  int delay_final = 1000000 / vfinal;
-
-  Logger::debug("Acc {} | Const {} | Dec {}", d_acc, d_const, d_dec);
-
-  int stepCount = 0;
-  
-  // Acceleration phase
-  for (int i = 0; i < d_acc; i++) {
-
-    // Increase speed linearly
-    int d = delay_init - ((delay_init - delay_max) * i / d_acc);
-    
-    Logger::debug("Acceleration: {}", d);
-
-    stepper1.step();
-    stepper2.step();
-    stepper3.step();
-    
-    delayMicroseconds(d);
-    stepCount++;
-  }
-  
-  // Constant velocity phase
-  for (int i = 0; i < d_const; i++) {
-
-    Logger::debug("Const: {}", delay_max);
-
-    stepper1.step();
-    stepper2.step();
-    stepper3.step();
-    
-    delayMicroseconds(delay_max);  // Move at constant speed
-    stepCount++;
-  }
-
-  // Deceleration phase
-  for (int i = 0; i < d_dec; i++) {
-
-    // Decrease speed linearly
-    int d = delay_max + ((delay_final - delay_max) * i / d_dec);
-
-   Logger::debug("Deceleration: {}", d);
-
-    stepper1.step();
-    stepper2.step();
-    stepper3.step();
-
-    delayMicroseconds(d);
-    stepCount++;
-  }
-
-  Logger::debug("\n");
-
 }
 
 /* ------------------------------ Single point ------------------------------ */
 
-/**
- * Put the arm in a certain configuration without velocity control.
- */
-
-void moveAll(
-    const Steps& steps, 
-    int minDelay = MIN_PULSE_DELAY,
-    int maxDelay = MAX_PULSE_DELAY, 
-    int accRate = ACC_RATE, 
-    int incr = INCREMENT
-  ) {
-    /**
-     * Low level function to move all the steppers simultaneously by the specified steps.
-     * The arm will try to use a trapezoidal speed profile. If not possible, it will
-     * accelerate if possible for half the space and then decelerate.
-     */
-
-  // Logger::debug("Moving to s1={}, s2={}, s3={}.", steps.s1, steps.s2, steps.s3);
-
-  stepper1.setTargetPosition(steps.s1);
-  stepper2.setTargetPosition(steps.s2);
-  stepper3.setTargetPosition(steps.s3);
-
-  // Determine the total steps (maximum) to synchronize the movement
-  int maxTotalSteps = max(steps.s1, max(steps.s2, steps.s3));
-
-  int del = maxDelay;  // Maximum delay = minimum acceleration
-  for (int i = 0; i < maxTotalSteps; i++) {
-    
-    // We need to take more steps than the steps required for an acceleration and deceleration phase
-    if (maxTotalSteps > (2 * accRate + 1)) {
-      if (i < accRate && del - incr >= minDelay) {
-        // Acceleration phase
-        del -= incr;
-      } else if (i > (maxTotalSteps - accRate) && del + incr <= maxDelay) {
-        // Deceleration phase
-        del += incr;
-      }
-
-    // Not enough steps for an acceleration and deceleration phase
-    } else {
-      if (i < maxTotalSteps / 2 && del - incr >= minDelay) {
-        // Accelerate until halfway
-        del -= incr;
-      } else if (i > ((maxTotalSteps + (maxTotalSteps % 2)) / 2) && del + incr <= maxDelay) {
-        // Decelerate until end
-        del += incr;
-      }
-    }
-
-    // Step the motors
-    stepper1.step();
-    stepper2.step();
-    stepper3.step();
-
-    // Apply the delay
-    delayMicroseconds(del);
-  }
-}
-
-void reachJoint(const IKSolution& solution) {
-  /**
-   * Reach the target joint configuration:
-   * 1. Translate joint values to steps;
-   * 2. Move by the steps;
-   */
-
-  // Logger::debug("Reaching joint configuration q1={}, q2={}, q3={}.", solution.q1, degrees(solution.q2), degrees(solution.q3));
-
-  Steps steps = IKSolution2Steps(solution);
-  moveAll(steps);
-
-  // Logger::debug("Current position: p1={}, p2={}, p3={}", stepper1.getCurrentPosition(), stepper2.getCurrentPosition(), stepper3.getCurrentPosition());
-}
-
 void reachCartesian(const Point& p) {
   /**
-   *  Reach the target cartesian point:
-   *  1. Compute the joint values with Inverse Kinematics;
-   *  2. Translate joint values to steps;
-   *  3. Move by the steps;
+   * Reach the target cartesian point. We will first compute the joint values with 
+   * the Inverse Kinematics routine, then translate them to steps and then move
+   * to the position.
    */
 
   // Logger::debug("Reaching cartesian point ({}, {}, {})", p.x, p.y, p.z);
@@ -366,10 +196,43 @@ void reachCartesian(const Point& p) {
   if (result) {
 
     reachJoint(solution);
-  
+
   } else {
 
     Logger::error("Unable to reach cartesian point ({}, {}, {})", p.x, p.y, p.z);
+  }
+}
+
+void reachJoint(const IKSolution& solution) {
+  /**
+   * Reach the target joint configuration. Compute the steps required to reach
+   * the joint configuration and then move by those steps.
+   */
+
+  // Logger::debug("Reaching joint configuration q1={}, q2={}, q3={}.", solution.q1, degrees(solution.q2), degrees(solution.q3));
+
+  Steps steps = IKSolution2Steps(solution);
+
+  float initialVelocity = MIN_VELOCITY_STEPS_S;
+  float maxVelocity = MAX_VELOCITY_STEPS_S;
+  float finalVelocity = MIN_VELOCITY_STEPS_S;
+  float acceleration = ACCELERATION;
+
+  stepper1.moveToPosition(steps.s1, initialVelocity, maxVelocity, finalVelocity, acceleration);
+  stepper2.moveToPosition(steps.s2, initialVelocity, maxVelocity, finalVelocity, acceleration);
+  stepper3.moveToPosition(steps.s3, initialVelocity, maxVelocity, finalVelocity, acceleration);
+
+  moveAll();
+}
+
+void moveAll() {
+  /**
+   * Move all steppers until they reach the target position.
+   */
+  while (!(stepper1.isAtTarget() && stepper2.isAtTarget() && stepper3.isAtTarget())) {
+    stepper1.step();
+    stepper2.step();
+    stepper3.step();
   }
 }
 
@@ -377,32 +240,42 @@ Steps IKSolution2Steps(const IKSolution& solution) {
   /**
    * Convert the inverse kinematics solution to steps for each motor 
    * by applying reduction factors and compensations.
-   */ 
+   */
 
   Steps steps;
-  steps.s1 = solution.q1 / JOINT_1_DIST_PER_STEP;
+  steps.s1 = solution.q1 * JOINT_1_STEPS_PER_M;
   steps.s2 = solution.q2 * JOINT_2_STEPS_PER_RAD;
-  
+
   // The third joint is a special case since we need to adjust it by a factor
   // to account for the variation produced by the movement of the second joint.
   steps.s3 = solution.q3 * JOINT_3_STEPS_PER_RAD;
-  steps.s3 += solution.q2/2 * JOINT_3_STEPS_PER_RAD;
+  steps.s3 += solution.q2 / 2 * JOINT_3_STEPS_PER_RAD;
 
   return steps;
 }
 
 /* --------------------------------- Homing --------------------------------- */
 
-void homeAxis(StepperMotor& stepper, Button& limitSwitch, int del = MAX_PULSE_DELAY, int homingSteps = HOMING_STEPS, int postHomingSteps = POST_HOMING_STEPS) {
+void homeAxis(
+    StepperMotor& stepper, 
+    Button& limitSwitch, 
+    int homingSteps, 
+    float initialVelocity = MIN_VELOCITY_STEPS_S, 
+    float maxVelocity = MIN_VELOCITY_STEPS_S, 
+    float finalVelocity = MIN_VELOCITY_STEPS_S,
+    float acceleration = 1
+  ) {
   /**
    * Home the specified axis by moving the motor with constant speed until button fires.
-   * The motor stops after #homingSteps anyway. We can't use a bang-coast-bang speed profile
-   * since we don't know in advance how many steps we need to take. We use the maximum
-   * speed pulse delay to produce the smallest speed (better safe than sorrow).
+   * The motor stops after #homingSteps anyway. We can't use a tapezoidal speed profile
+   * since we don't know in advance how many steps we need to take and thus we cannot
+   * decelerate properly. We could gradually accelerate and until we reach the maximum
+   * velocity but I prefer to cruise to the limit switch with minimum velocity in order 
+   * to move safely to the target.
    */
 
-  stepper.setTargetPosition(-homingSteps);
-  while(!stepper.isAtTarget()) {
+  stepper.moveToPosition(homingSteps, initialVelocity, maxVelocity, finalVelocity, acceleration);
+  while (!stepper.isAtTarget()) {
 
     if (limitSwitch.pressed()) {
       Logger::debug("Endstop {} reached.", limitSwitch.getPin());
@@ -411,18 +284,12 @@ void homeAxis(StepperMotor& stepper, Button& limitSwitch, int del = MAX_PULSE_DE
 
     // Perform a step with constant velocity
     stepper.step();
-    delayMicroseconds(del);
+
+    // Little delay to smooth things out
+    delayMicroseconds(10);
   }
 
-  /*
-  stepper.setTargetPosition(postHomingSteps);
-
-  while(!stepper.isAtTarget()) {
-    stepper.step();
-    delayMicroseconds(del);
-  }
-  */
-
+  // Set the zero
   stepper.setCurrentPosition(0);
 }
 
@@ -431,7 +298,8 @@ void homeAll() {
    * Home all the axis.
    */
 
-  homeAxis(stepper1, button1);
+  // Move the first axis down for 10000 steps or until the limit switch registers a press
+  homeAxis(stepper1, button1, -10000);
   Logger::debug("Axis 0 homed.");
 
   // homeAxis(stepper2, button2);
@@ -441,14 +309,6 @@ void homeAll() {
   Logger::debug("Axis 2 homed.");
 
   reachJoint(IKSolution(0.1, 0, 0));
-}
-
-void reset() {
-  /**
-   * Reset to initial position.
-   */
-   reachJoint(IKSolution(0.1, 0, 0)); // prismatic joint displaced by 10 cm
-   Logger::debug("Position reset to q1={}, q2={}, q3={}", 0.1, 0, 0);
 }
 
 /* ---------------------------------- Loop ---------------------------------- */

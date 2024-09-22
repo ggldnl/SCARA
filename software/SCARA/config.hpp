@@ -21,20 +21,36 @@ const int MAX_PULSE_DELAY = 800;
 const int ACC_RATE = 800;
 const int INCREMENT = 1;
 
-// Phisically accurate velocity and acceleration measurements
-const float MAX_VELOCITY = 1e-4;
-const float ACCELERATION = 1e-10;
+// Velocity and acceleration
 
-// Endstops
+/*
+ * I empirically found that with my combination of steppers and drivers
+ * the stepper work best if we use a pulse with a frequency between
+ * 400 and 800 microseconds. A shorter frequency results in a higher
+ * velocity. The stepper class works with velocity and accelerations 
+ * expressed in steps/s and steps/s^2 respectively. This means that 
+ * we would have to use a minimum and maximum velocity in the range 
+ * of 1250 to 2500 steps/s, according to the following computation:
+ *
+ * delay = 1000000/velocity
+ * 400 = 1000000/x -> x = 2500
+ * 800 = 1000000/x -> x = 1250
+ */
+
+const float MAX_VELOCITY_STEPS_S = 2500.0;
+const float MIN_VELOCITY_STEPS_S = 1250.0;
+const float ACCELERATION = 1000.0;
+
+const float MAX_VELOCITY_DELAY = 400.0;
+const float MIN_VELOCITY_DELAY = 800.0;
+
+// Homing and limit switches
+
+const int MAX_HOMING_STEPS = 10000;
 
 const byte STEPPER_1_LIMIT_SWITCH_PIN = 9;
 const byte STEPPER_2_LIMIT_SWITCH_PIN = 10;
 const byte STEPPER_3_LIMIT_SWITCH_PIN = 11;
-
-// Homing
-
-const int HOMING_STEPS = 10000;
-const int POST_HOMING_STEPS = 250;
 
 // Reduction ratios
 
@@ -50,9 +66,9 @@ const float JOINT_1_LEAD = 8.0;                                 // leadscrew pit
 const float JOINT_2_REDUCTION = (72.0 / 16.0);                  // first stage
 const float JOINT_3_REDUCTION = (62.0 / 16.0) * (62.0 / 33.0);  // first stage * second stage
 
-const float JOINT_1_DIST_PER_STEP = (JOINT_1_LEAD / (STEPPER_1_STEPS_PER_REVOLUTION * STEPPER_1_MICROSTEPPING)) / 1000.0;         // m
-const float JOINT_2_STEPS_PER_RAD = (STEPPER_2_STEPS_PER_REVOLUTION * STEPPER_2_MICROSTEPPING / (2 * M_PI)) * JOINT_2_REDUCTION; 
-const float JOINT_3_STEPS_PER_RAD = (STEPPER_3_STEPS_PER_REVOLUTION * STEPPER_3_MICROSTEPPING / (2 * M_PI)) * JOINT_3_REDUCTION;
+const float JOINT_1_STEPS_PER_M = (STEPPER_1_STEPS_PER_REVOLUTION * STEPPER_1_MICROSTEPPING) / (JOINT_1_LEAD / 1000.0);           // steps/m
+const float JOINT_2_STEPS_PER_RAD = (STEPPER_2_STEPS_PER_REVOLUTION * STEPPER_2_MICROSTEPPING / (2 * M_PI)) * JOINT_2_REDUCTION;  // steps/rad
+const float JOINT_3_STEPS_PER_RAD = (STEPPER_3_STEPS_PER_REVOLUTION * STEPPER_3_MICROSTEPPING / (2 * M_PI)) * JOINT_3_REDUCTION;  // steps/rad
 
 // Link lenghts
 

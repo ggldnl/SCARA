@@ -87,7 +87,7 @@ public:
     }
 
     // Add a new element to the vector
-    void push_back(const T& value) {
+    void pushBack(const T& value) {
         if (size == capacity) {
             resize(capacity * 2);         // Double capacity if full
         }
@@ -95,10 +95,16 @@ public:
     }
 
     // Remove the last element from the vector
-    void pop_back() {
+    void popBack() {
         if (size > 0) {
             --size;                       // Reduce size but keep memory
         }
+    }
+
+    void fill(T elem) {
+      for (size_t i = 0; i < size; ++i) {
+          data[i] = elem;
+      }
     }
 
     // Access element by index (no bounds checking)

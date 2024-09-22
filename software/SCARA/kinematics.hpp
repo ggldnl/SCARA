@@ -46,14 +46,15 @@ Vector<IKSolution> inverseKinematicsVector(const Vector<Point>& points) {
       solutions.clear();
       return solutions;
     }
-    solutions.push_back(solution);
+    solutions.pushBack(solution);
   }
 
   return solutions;
 }
 
-const Matrix<float>& getJacobian(const IKSolution& joints) {
-  static Matrix<float> jacobian(3, 3);
+const Matrix<float> getJacobian(const IKSolution& joints) {
+  
+  Matrix<float> jacobian(3, 3);
 
   float q2 = joints.q2;
   float q3 = joints.q3;
@@ -66,15 +67,16 @@ const Matrix<float>& getJacobian(const IKSolution& joints) {
   jacobian(1, 1) = L2 * cos(q2 + q3) + L1 * cos(q2);
   jacobian(1, 2) = L2 * cos(q2 + q3);
 
-  jacobian(2, 0) = 0;
+  jacobian(2, 0) = 1;
   jacobian(2, 1) = 0;
-  jacobian(2, 2) = 1;
+  jacobian(2, 2) = 0;
 
   return jacobian;
 }
 
-const Matrix<float>& getJacobianInverse(const IKSolution& joints, const float epsilon = 1e-6) {
-  static Matrix<float> jacobianInverse(3, 3);
+const Matrix<float> getJacobianInverse(const IKSolution& joints, const float epsilon = 1e-6) {
+  
+  Matrix<float> jacobianInverse(3, 3);
 
   float q2 = joints.q2;
   float q3 = joints.q3;
@@ -119,37 +121,29 @@ void perturbJointAngles(IKSolution& joints, const float epsilon = 1e-6, const fl
 
 Vector<float> computeJointVelocities(IKSolution& currentJointConfiguration, const Vector<float>& velocityVector, const float epsilon = 1e-6) {
 
-  const Matrix<float>& jacobian = getJacobian(currentJointConfiguration);
+  const Matrix<float> jacobian = getJacobian(currentJointConfiguration);
 
-  float det = jacobian(0, 0) * (jacobian(1, 1) * jacobian(2, 2) - jacobian(1, 2) * jacobian(2, 1)) -
-              jacobian(0, 1) * (jacobian(1, 0) * jacobian(2, 2) - jacobian(1, 2) * jacobian(2, 0)) +
-              jacobian(0, 2) * (jacobian(1, 0) * jacobian(2, 1) - jacobian(1, 1) * jacobian(2, 0));
-
-  // This is what I originally tried but it went really bad
-  // const Matrix<float>& jacobianInverse = (fabs(det) > epsilon) ? getJacobianInverse(currentJointConfiguration) : getJacobianPseudoInverse(jacobian);
-
-  // Instead of computing the pseudo inverse of a matrix on an arduino (mh...) we can slightly change the current joint configuration such that we 
-  // are no more in a singularity. These computations will be rounded down to the delays between steps, I don't think we should worry about precision.
+  // Instead of computing the pseudo inverse of a matrix we could slightly change the current joint configuration such that we 
+  // are no more in a singularity. These computations will be rounded down to the delays between steps, I don't think we should 
+  // worry about precision.
+  /*
   if (fabs(det) < epsilon)
       perturbJointAngles(currentJointConfiguration);
+  */
 
-  const Matrix<float>& jacobianInverse = getJacobianInverse(currentJointConfiguration);
-
-  Vector<float> jointVelocities = jacobianInverse.multiply(velocityVector);
+  float det = jacobian.determinant();
+  Matrix<float> jacobianInverse = (fabs(det) < epsilon) ? jacobian.pseudoInverse() : jacobian.inverse();
 
   /*
-  Logger::debug("Joint configuration:");
-  Logger::debug("{}\t {}\t {}", currentJointConfiguration.q1, currentJointConfiguration.q2, currentJointConfiguration.q3);
-
   Logger::debug("Jacobian Inverse:");
   Logger::debug("{}\t {}\t {}", jacobianInverse(0, 0), jacobianInverse(0, 1), jacobianInverse(0, 2));
   Logger::debug("{}\t {}\t {}", jacobianInverse(1, 0), jacobianInverse(1, 1), jacobianInverse(1, 2));
   Logger::debug("{}\t {}\t {}", jacobianInverse(2, 0), jacobianInverse(2, 1), jacobianInverse(2, 2));
-  
-  Logger::debug("Joint velocities:");
-  Logger::debug("{}\t {}\t {}", jointVelocities[0], jointVelocities[1], jointVelocities[2]);
   */
 
+  Vector<float> jointVelocities = jacobianInverse.multiply(velocityVector);
+  Logger::debug("Joint velocities (m/s and rad/s): {}, {}, {}", jointVelocities[0], jointVelocities[1], jointVelocities[2]);
+  
   return jointVelocities;
 }
 
