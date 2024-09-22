@@ -19,7 +19,7 @@
 | Locknuts              | 1        | See notes                                | € 0.06          |
 | Micro switches        | 3        |                                          | € 0.22          |
 
-Total: 94.84 (omitting heat set inserts and locknuts)
+Total: 150.8 (omitting heat set inserts and locknuts)
 
 ## Notes
 
@@ -29,7 +29,8 @@ Total: 94.84 (omitting heat set inserts and locknuts)
 - I added a 12V fan to cool down the stepper drivers but this is totally optional and thus omitted from the BOM. The fan was too loud so I also added a step down converter to decrease the voltage, also optional. If you don't have a step down laying around you can also:
     1. use the fan connecting it directly to the power jack if it's 12V;
     2. use a variable resistor to create a voltage divider and lower its input voltage; this is kind of sketchy and the resistor can get very hot, not recommended.
-    I provided 3 versions of the control box lid to accomodate each case.0
+    I provided 3 versions of the control box lid to accomodate each case.
+Alternatively you can use a 5V fan and connect it to the 5V and GND pins of the CNC shield.
 - Number of locknuts used (only where vibrations could break the arm): 8
 - Number of heat set inserts used: 24
 - Complete list of M2 screws and nuts used: 6x M2x16 screw + 6x M2 nuts to keep the micro switches in place 
