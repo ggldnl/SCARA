@@ -191,6 +191,15 @@ public:
             data[i] = elem;
         }
     }
+
+    void fillRow(size_t rowIndex, Vector<T> elems) {
+        if (rowIndex < 0 || rowIndex >= rows)
+            return;
+          
+        for (size_t c = 0; c < cols; ++c) {
+            (*this)(rowIndex, c) = elems[c];
+        }
+    }
     
     Vector<T> getRow(size_t rowIndex) const {
         Vector<T> row;

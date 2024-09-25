@@ -3,194 +3,133 @@
 
 
 class StepperMotor {
-public:
+  private:
 
-    StepperMotor(uint8_t pulPin, uint8_t dirPin)
-        : pulPin_(pulPin), dirPin_(dirPin), currentPosition_(0), targetPosition_(0),
-          stepState_(LOW), velocity_(0), acceleration_(0), lastStepTime_(0), stepInterval_(0),
-          maxVelocity_(0), finalVelocity_(0), stepsAccel_(0), stepsDecel_(0), stepsConstant_(0) {
+    uint8_t pulPin, dirPin;
+    long currentPosition, targetPosition;
+    float currentVelocity, initialVelocity, finalVelocity, maxVelocity;
+    float acceleration;
+    long totalSteps, currentStep, accelSteps, decelSteps, constSteps;
+    unsigned long stepInterval, lastStepTime;
+    bool direction;
 
-        // Setup the pins
-        pinMode(pulPin_, OUTPUT);
-        pinMode(dirPin_, OUTPUT);
-        digitalWrite(pulPin_, LOW);
-        digitalWrite(dirPin_, LOW);
-    }
+    void computeProfile() {
 
-    void moveToPosition(int targetPosition, float initialVelocity, float maxVelocity, float finalVelocity, float acceleration) {
-        /**
-         * Set the target position, maximum velocity, final velocity, and acceleration.
-         * Once we call this method it will compute the constants to 
-         */
+      // Compute the total steps
+      totalSteps = abs(targetPosition - currentPosition);
 
-        targetPosition_ = targetPosition;
-        velocity_ = initialVelocity;
-        maxVelocity_ = maxVelocity;
-        finalVelocity_ = finalVelocity;
-        acceleration_ = acceleration;
-        lastStepTime_ = micros();  // Initialize the step timer
-
-        // Prevent negative velocity and division by 0
-        if (velocity_ <= 0) velocity_ = 0.01;
-
-        // Calculate acceleration and deceleration steps
-        stepsAccel_ = computeSteps(velocity_, maxVelocity_, acceleration_);
-        stepsDecel_ = computeSteps(finalVelocity_, maxVelocity_, acceleration_);
-
-        // Adjust max velocity if there aren't enough steps to reach the desired speed
-        if (stepsAccel_ + stepsDecel_ > abs(targetPosition_ - currentPosition_)) {
-
-            // Compute the maximum velocity achievable given acceleration and distance to cover.
-            maxVelocity_ = sqrt(velocity_ * velocity_ + acceleration_ * abs(targetPosition_ - currentPosition_));
+      // Distance covered during acceleration and deceleration phases
+      accelSteps = abs((maxVelocity * maxVelocity - initialVelocity * initialVelocity) / (2 * acceleration));
+      decelSteps = abs((maxVelocity * maxVelocity - finalVelocity * finalVelocity) / (2 * acceleration));
+        
+      // If the distance is too short to reach max velocity, we use a triangular profile
+      if (accelSteps + decelSteps > totalSteps) {
           
-            stepsAccel_ = computeSteps(velocity_, maxVelocity_, acceleration_);
-            stepsDecel_ = computeSteps(finalVelocity_, maxVelocity_, acceleration_);
+          // Maximum achievable velocity
+          maxVelocity = sqrt(acceleration * totalSteps + 0.5 * (initialVelocity * initialVelocity + finalVelocity * finalVelocity));
+        
+          // Recompute acceleration and deceleration steps based on maximum achievable velocity
+          accelSteps = abs((maxVelocity * maxVelocity - initialVelocity * initialVelocity) / (2 * acceleration));
+          decelSteps = totalSteps - accelSteps;
+
+          constSteps = 0;  // No constant velocity phase in triangular profile
+      } else {
+          // Trapezoidal profile
+          constSteps = totalSteps - (accelSteps + decelSteps);
+      }
+      
+      direction = (targetPosition > currentPosition) ? HIGH : LOW;
+      digitalWrite(dirPin, direction);
+      
+      // Initial delay
+      stepInterval = 1e6 / initialVelocity;
+
+      // Initialize timing
+      lastStepTime = micros();
+    }
+
+  public:
+  
+    StepperMotor(uint8_t _pulPin, uint8_t _dirPin):
+      pulPin(_pulPin), dirPin(_dirPin),
+      currentPosition(0), targetPosition(0),
+      currentVelocity(0), initialVelocity(0), finalVelocity(0), maxVelocity(0),
+      acceleration(0),
+      totalSteps(0), currentStep(0), accelSteps(0), decelSteps(0), constSteps(0),
+      stepInterval(0), lastStepTime(0),
+      direction(HIGH)
+    {
+      pinMode(pulPin, OUTPUT);
+      pinMode(dirPin, OUTPUT);
+    }
+
+    void moveToPosition(long _targetPosition, float _initialVelocity, float _maxVelocity, float _finalVelocity, float _acceleration) {
+
+      targetPosition = _targetPosition;
+      initialVelocity = _initialVelocity;
+      finalVelocity = _finalVelocity;
+      maxVelocity = _maxVelocity;
+      acceleration = _acceleration;
+      currentStep = 0;
+
+      computeProfile();
+    }
+
+    bool isAtTarget() {
+      return currentPosition == targetPosition;
+    }
+
+    void setCurrentPosition(long _currentPosition) {
+      currentPosition = _currentPosition;
+    }
+
+    long getCurrentPosition() {
+      return currentPosition;
+    }
+
+    void step() {
+        
+      unsigned long currentTime = micros();
+      unsigned long elapsedTime = currentTime - lastStepTime;
+      float elapsedTimeS = elapsedTime / 1e6;
+      
+      if (currentPosition != targetPosition && elapsedTime >= stepInterval) {
+          
+        // Update position based on direction
+        if (direction == HIGH) {
+          currentPosition++;
+        } else {
+          currentPosition--;
         }
 
-        // Remaining steps are at constant velocity
-        stepsConstant_ = abs(targetPosition_ - currentPosition_) - stepsAccel_ - stepsDecel_;
-
-        // Compute the initial step interval
-        stepInterval_ = 1000000.0 / velocity_;
-
-    }
-
-    bool step() {
-        /**
-         * Perform a single step if we are not at target position yet.
-         * Use the with trapezoidal speed profile to compute the velocity
-         * (delay between pulses).
-         */
-
-        if (currentPosition_ == targetPosition_) {
-            return false;  // No need to move
+        // Acceleration phase
+        if (currentStep < accelSteps) {  
+            currentVelocity = sqrt(initialVelocity * initialVelocity + 2 * acceleration * currentStep);
+            currentVelocity = min(currentVelocity, maxVelocity);  // Cap velocity to maxVelocity
         }
-
-        unsigned long currentTime = micros();
-        unsigned long timeSinceLastStep = currentTime - lastStepTime_;
-
-        if (timeSinceLastStep >= stepInterval_) {
-            // Set direction based on target position
-            if (currentPosition_ < targetPosition_) {
-                digitalWrite(dirPin_, HIGH);  // Move forward
-                currentPosition_++;
-            } else {
-                digitalWrite(dirPin_, LOW);   // Move backward
-                currentPosition_--;
-            }
-
-            // Toggle the pulse pin
-            stepState_ = !stepState_;
-            digitalWrite(pulPin_, stepState_);
-
-            // We made a step, update the timestamp of the last step taken
-            lastStepTime_ = currentTime;
-
-            // Adjust the velocity if in acceleration phase
-            if (currentPosition_ < stepsAccel_) {
-                velocity_ += acceleration_ * (timeSinceLastStep / 1000000.0);  // v = u + at
-                if (velocity_ > maxVelocity_) velocity_ = maxVelocity_; // Cap the velocity if it's over the maximum
-            }
-            // Adjust the velocity if in constant velocity phase
-            else if (currentPosition_ >= stepsAccel_ && currentPosition_ < stepsAccel_ + stepsConstant_) {
-                velocity_ = maxVelocity_;  // Maintain constant velocity
-            }
-            // Adjust the velocity if in deceleration phase
-            else if (currentPosition_ >= stepsAccel_ + stepsConstant_) {
-                velocity_ -= acceleration_ * (timeSinceLastStep / 1000000.0);  // v = u - at
-                if (velocity_ < finalVelocity_) velocity_ = finalVelocity_; // Cap the velocity if it's below the minimum
-            }
-
-            // Prevent negative velocity and division by 0
-            if (velocity_ <= 0) velocity_ = 0.01;
-
-            // Compute new delay interval for next step
-            stepInterval_ = 1000000.0 / velocity_;
+        // Constant velocity phase (only in trapezoidal profile)
+        else if (constSteps > 0 && currentStep < totalSteps - decelSteps) {
+            currentVelocity = maxVelocity;
         }
-
-        return true;
-    }
-
-    bool isAtTarget() const {
-        /**
-         * Check if the motor has reached its target position.
-         */
-        return currentPosition_ == targetPosition_;
-    }
-
-    int getCurrentPosition() const {
-        /**
-         * Get the current position of the stepper motor.
-         */
-        return currentPosition_;
-    }
-
-    void setCurrentPosition(const int currentPosition) {
-        currentPosition_ = currentPosition;
-    }
-
-    int getTargetPosition() const {
-        /**
-         * Get the target position of the stepper motor.
-         */
-    }
-
-    float getCurrentVelocity() const {
-        /** 
-         * Get the current velocity of the stepper motor.
-         */
-        return velocity_;
-    }
-
-    float getTargetVelocity() const {
-        /** 
-         * Get the target velocity of the stepper motor.
-         */
-        return finalVelocity_;
-    }
-
-    float getCurrentDelay() const {
-        /**
-         * Return the current delay.
-         */
-        return 1000000.0 / velocity_;
-    }
-
-    float getAcceleration() const {
-        /** 
-         * Get the acceleration of the stepper motor.
-         */
-        return acceleration_;
-    }
-
-private:
-
-    uint8_t pulPin_;         // Pin for pulse signal
-    uint8_t dirPin_;         // Pin for direction signal
-
-    int currentPosition_;    // Current position (in steps)
-    int targetPosition_;     // Target position (in steps)
-
-    // Alternates between HIGH and LOW for pulsing so we can repeatedly call the step() method
-    bool stepState_;
+        // Deceleration phase
+        else if (currentStep < totalSteps) {
+            currentVelocity = sqrt(finalVelocity * finalVelocity + 2 * acceleration * (totalSteps - currentStep));
+            currentVelocity = max(currentVelocity, finalVelocity);  // Ensure it doesn't go below final velocity
+        }
     
-    float velocity_;         // Current velocity (steps per second)
-    float finalVelocity_;    // Final velocity (steps per second)
-    float maxVelocity_;      // Maximum velocity (steps per second)
-    float acceleration_;     // Acceleration (steps per second^2)
+        currentStep ++;
 
-    unsigned long lastStepTime_;  // Last time a step was taken (in microseconds)
-    unsigned long stepInterval_;  // Time interval between steps (in microseconds)
+        // Update step interval based on current velocity
+        stepInterval = 1e6 / currentVelocity;
 
-    int stepsAccel_;         // Steps for acceleration phase
-    int stepsConstant_;      // Steps for constant velocity phase
-    int stepsDecel_;         // Steps for deceleration phase
-
-    int computeSteps(float startVelocity, float endVelocity, float accel) {
-        /**
-         * Helper function to compute the steps needed to reach a target velocity (expressed in steps/s).
-         */
-        return (int)((endVelocity * endVelocity - startVelocity * startVelocity) / (2.0 * accel));
+        // Update the last step time
+        lastStepTime = currentTime;
+        
+        // Step the motor
+        digitalWrite(pulPin, HIGH);
+        delayMicroseconds(1); // Short pulse, most steppers are good with this, else try 2 or 5 us
+        digitalWrite(pulPin, LOW);
+      }
     }
 };
 

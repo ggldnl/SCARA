@@ -38,11 +38,9 @@ const int INCREMENT = 1;
  */
 
 const float MAX_VELOCITY_STEPS_S = 2500.0;
-const float MIN_VELOCITY_STEPS_S = 1250.0;
-const float ACCELERATION = 1000.0;
-
-const float MAX_VELOCITY_DELAY = 400.0;
-const float MIN_VELOCITY_DELAY = 800.0;
+const float MID_VELOCITY_STEPS_S = 1500.0;
+const float MIN_VELOCITY_STEPS_S = 500.0;
+const float ACCELERATION = 500.0;
 
 // Homing and limit switches
 
@@ -54,9 +52,9 @@ const byte STEPPER_3_LIMIT_SWITCH_PIN = 11;
 
 // Reduction ratios
 
-const int STEPPER_1_MICROSTEPPING = 2;
-const int STEPPER_2_MICROSTEPPING = 2;
-const int STEPPER_3_MICROSTEPPING = 2;
+const int STEPPER_1_MICROSTEPPING = 16;
+const int STEPPER_2_MICROSTEPPING = 16;
+const int STEPPER_3_MICROSTEPPING = 16;
 
 const float STEPPER_1_STEPS_PER_REVOLUTION = 200.0;
 const float STEPPER_2_STEPS_PER_REVOLUTION = 200.0;

@@ -7,12 +7,13 @@
 #include "kinematics.hpp"
 
 // Function declarations
-Vector<float> convertVelocity(Vector<float>&);
-void executeTrajectory(Vector<Point>&, Vector<float>&, const float = MIN_VELOCITY_STEPS_S, const float = MAX_VELOCITY_STEPS_S, const float = ACCELERATION);
-void reachCartesian(const Point&);
-void reachJoint(const IKSolution&);
+void executeTrajectory(Vector<Point>&, const float = MIN_VELOCITY_STEPS_S, const float = MID_VELOCITY_STEPS_S, const float = ACCELERATION);
+void reachCartesian(const Point&, const float = MIN_VELOCITY_STEPS_S, const float = MID_VELOCITY_STEPS_S, const float = ACCELERATION);
+void reachJoint(const IKSolution&, const float = MIN_VELOCITY_STEPS_S, const float = MID_VELOCITY_STEPS_S, const float = ACCELERATION);
 void moveAll();
 Steps IKSolution2Steps(const IKSolution&);
+void enable();
+void disable();
 
 
 // Define the steppers
@@ -25,9 +26,8 @@ Button button1(STEPPER_1_LIMIT_SWITCH_PIN);
 Button button2(STEPPER_2_LIMIT_SWITCH_PIN);
 Button button3(STEPPER_3_LIMIT_SWITCH_PIN);
 
-// Define the trajectory to follow and the desired end effector velocity (m/s)
+// Define the trajectory to follow
 Vector<Point> trajectory;
-Vector<float> velocity;
 
 void setup() {
 
@@ -47,29 +47,25 @@ void setup() {
 
   // Enable the board
   pinMode(ENABLE, OUTPUT);
-  digitalWrite(ENABLE, LOW);
-  Logger::info("Board enabled.");
-
+  enable();
+  
   // Home axis
   // homeAll();
   Logger::info("All axis homed.");
 
   /* --------------------------- Execute trajectory --------------------------- */
 
-  // Add the points to the trajectory (square)
-  /*
-  trajectory.pushBack(Point(L1 + L2, 0.0, 0.10000));  // Reach the height with the arm fully stretched
-  trajectory.pushBack(Point(0.15536, 0.03536, 0.10000));
-  trajectory.pushBack(Point(0.08464, 0.03536, 0.10000));
-  trajectory.pushBack(Point(0.08464, -0.03536, 0.10000));
-  trajectory.pushBack(Point(0.15536, -0.03536, 0.10000));
-  */
+  // Add the points to the trajectory
 
+  /*
+  // 3-point line
   trajectory.pushBack(Point(0.10, -0.14, 0.1));
   trajectory.pushBack(Point(0.10, 0.0, 0.1));;
   trajectory.pushBack(Point(0.10, 0.14, 0.1));
+  */
 
   /*
+  // 10-point line
   trajectory.pushBack(Point(0.10, -0.14, 0.1));
   trajectory.pushBack(Point(0.10, -0.11, 0.1));
   trajectory.pushBack(Point(0.10, -0.08, 0.1));
@@ -82,53 +78,41 @@ void setup() {
   trajectory.pushBack(Point(0.10, 0.14, 0.1));
   */
 
-  /*
-  // End effector velocity of 0.025 m/s in all directions
-  velocity.pushBack(0.025);
-  velocity.pushBack(0.025);
-  velocity.pushBack(0.025);
-  */
+  // Circle
+  trajectory.pushBack(Point(0.170, 0.000, 0.1));
+  trajectory.pushBack(Point(0.120, 0.050, 0.1));
+  trajectory.pushBack(Point(0.070, 0.000, 0.1));
+  trajectory.pushBack(Point(0.120, -0.050, 0.1));
 
-  velocity.pushBack(0.01);
-  velocity.pushBack(0.01);
-  velocity.pushBack(0.01);
+  executeTrajectory(trajectory);
+  // reachCartesian(trajectory[0]);
 
-  executeTrajectory(trajectory, velocity);
-
+  delay(2000);
+  disable();
 }
 
 /* ------------------------------ Trajectories ------------------------------ */
 
-Vector<float> convertVelocity(Vector<float>& velocity) {
-  /**
-   * Converts the input velocity vector from m/s (or rad/s) to steps/s
-   */
-  Vector<float> vector(3);
-
-  // Absolute values since the stepper motor library will use the position to 
-  // determine the direction of rotation 
-  vector.pushBack(abs(velocity[0] * JOINT_1_STEPS_PER_M));
-  vector.pushBack(abs(velocity[1] * JOINT_2_STEPS_PER_RAD));
-  vector.pushBack(abs(velocity[2] * JOINT_3_STEPS_PER_RAD));
-  
-  return vector;
-}
-
 void executeTrajectory(
     Vector<Point>& trajectory, 
-    Vector<float>& velocity, 
     const float restVelocity = MIN_VELOCITY_STEPS_S, 
-    const float maxVelocity = MAX_VELOCITY_STEPS_S, 
+    const float cruiseVelocity = MID_VELOCITY_STEPS_S, 
     const float acceleration = ACCELERATION
   ) {
 
+  // Vectors to buffer computations
   Vector<Steps> trajectorySteps;
-  Vector<Vector<float>> velocities;
+  Matrix<float> initialVelocities(trajectory.getSize(), 3); // {{v1i, v2i, v3i}, ...}
+  Matrix<float> finalVelocities(trajectory.getSize(), 3);   // {{v1f, v2f, v3f}, ...}
+
+  // Emulate the motors during debug
+  Steps currSteps(0, 0, 0);
+  
   Logger::debug("-------------------------------------------------");
   for (size_t i = 0; i < trajectory.getSize(); i++) {
 
     Point point = trajectory[i];
-    Logger::debug("Point {}: ({}, {}, {})", i + 1, point.x, point.y, point.z);
+    Logger::debug("Point {}: ({}, {}, {})", i, point.x, point.y, point.z);
 
     // Compute the inverse kinematics
     IKSolution configuration;
@@ -137,50 +121,110 @@ void executeTrajectory(
       Logger::error("Point ({}, {}, {}) is not reachable.", point.x, point.y, point.z);
       return;
     }
-    Logger::debug("Inverse kinematics solution: {}, {}, {}", configuration.q1, configuration.q2, configuration.q3);
+    Logger::debug("Inverse kinematics solution: ({}, {}, {})", configuration.q1, configuration.q2, configuration.q3);
 
     // Compute the steps it takes to reach the joint configuration
     Steps steps = IKSolution2Steps(configuration);
-    Logger::debug("Steps needed: {}, {}, {}", steps.s1, steps.s2, steps.s3);
+    Logger::debug("Going from: ({}, {}, {})", currSteps.s1, currSteps.s2, currSteps.s3);
+    Logger::debug("        to: ({}, {}, {})", steps.s1, steps.s2, steps.s3);
+
+    // Find longest distance to cover
+    int distance1 = abs(currSteps.s1 - steps.s1);
+    int distance2 = abs(currSteps.s2 - steps.s2);
+    int distance3 = abs(currSteps.s3 - steps.s3);
+    Logger::debug("Distances: ({}, {}, {})", distance1, distance2, distance3);
+    Logger::debug("");
+
+    float maxSteps = max(distance1, max(distance2, distance3)) * 1.0;
+    Logger::debug("Using scaling coefficient: {}", maxSteps);
+
+    // The motor that needs to move the most steps should move at full velocity and acceleration
+    // while the other motor's velocity and acceleration are scaled proportionally to match 
+    // the duration of the motion of the first one
+    float scaleFactor1 = distance1 != 0 ? maxSteps / distance1 : 1;
+    float scaleFactor2 = distance2 != 0 ? maxSteps / distance2 : 1;
+    float scaleFactor3 = distance3 != 0 ? maxSteps / distance3 : 1;
+
+    // Define velocities
+    float v1i = i == 0 ? restVelocity : cruiseVelocity;
+    float v2i = i == 0 ? restVelocity : cruiseVelocity;
+    float v3i = i == 0 ? restVelocity : cruiseVelocity;
+
+    float v1f = i == trajectory.getSize() - 1 ? restVelocity : cruiseVelocity;
+    float v2f = i == trajectory.getSize() - 1 ? restVelocity : cruiseVelocity;
+    float v3f = i == trajectory.getSize() - 1 ? restVelocity : cruiseVelocity;
+
+    Logger::debug("Original velocities:");
+    Logger::debug("{} -> {}", v1i, v1f);
+    Logger::debug("{} -> {}", v2i, v2f);
+    Logger::debug("{} -> {}", v3i, v3f);
+    Logger::debug("");
+  
+    // Scale velocities and accelerations
+    v1i = v1i / scaleFactor1;
+    v2i = v2i / scaleFactor2;
+    v3i = v3i / scaleFactor3;
+
+    v1f = v1f / scaleFactor1;
+    v2f = v2f / scaleFactor2;
+    v3f = v3f / scaleFactor3;
+
+    Logger::debug("Scaled velocities:");
+    Logger::debug("{} -> {}", v1i, v1f);
+    Logger::debug("{} -> {}", v2i, v2f);
+    Logger::debug("{} -> {}", v3i, v3f);
+    Logger::debug("");
+
+    Vector<float> vi(3);
+    vi.pushBack(v1i);
+    vi.pushBack(v2i);
+    vi.pushBack(v3i);
+
+    Vector<float> vf(3);
+    vf.pushBack(v1f);
+    vf.pushBack(v2f);
+    vf.pushBack(v3f);
 
     // Buffer the computation
     trajectorySteps.pushBack(steps);
+    initialVelocities.fillRow(i, vi);
+    finalVelocities.fillRow(i, vf);
 
-    // Transform the end effector velocity to joint velocity
-    Vector<float> jointVelocities = computeJointVelocities(configuration, velocity);
+    Logger::debug("stepper1.moveToPosition({}, {}, {}, {}, {})", steps.s1, v1i, cruiseVelocity, v1f, acceleration);
+    Logger::debug("stepper2.moveToPosition({}, {}, {}, {}, {})", steps.s2, v2i, cruiseVelocity, v2f, acceleration);
+    Logger::debug("stepper3.moveToPosition({}, {}, {}, {}, {})", steps.s3, v3i, cruiseVelocity, v3f, acceleration);
+    Logger::debug("");
 
-    // Express the joint velocities in steps/s (from m/s or rad/s)
-    Vector<float> translatedVelocities = convertVelocity(jointVelocities);
-    Logger::debug("Joint velocities (steps/s): {}, {}, {}", translatedVelocities[0], translatedVelocities[1], translatedVelocities[2]);
-
-    // Buffer the computation
-    velocities.pushBack(translatedVelocities);
+    // Update the emulated steppers
+    currSteps.s1 = steps.s1;
+    currSteps.s2 = steps.s2;
+    currSteps.s3 = steps.s3;
 
     Logger::debug("-------------------------------------------------");
   }
 
+  Logger::debug("Starting trajectory execution.");
   for (size_t i = 0; i < trajectorySteps.getSize(); i++) {
 
     Steps steps = trajectorySteps[i];
 
-    // Same number of elements
-    Vector<float> velocity = velocities[i];
-
-    float v1 = i == restVelocity ? 0 : velocity[0];
-    float v2 = i == restVelocity ? 0 : velocity[1];
-    float v3 = i == restVelocity ? 0 : velocity[2];
-
-    stepper1.moveToPosition(steps.s1, v1, maxVelocity, velocity[0], acceleration);
-    stepper2.moveToPosition(steps.s2, v2, maxVelocity, velocity[1], acceleration);
-    stepper3.moveToPosition(steps.s3, v3, maxVelocity, velocity[2], acceleration);
-
+    stepper1.moveToPosition(steps.s1, initialVelocities(i, 0), cruiseVelocity, finalVelocities(i, 0), acceleration);
+    stepper2.moveToPosition(steps.s2, initialVelocities(i, 1), cruiseVelocity, finalVelocities(i, 1), acceleration);
+    stepper3.moveToPosition(steps.s3, initialVelocities(i, 2), cruiseVelocity, finalVelocities(i, 2), acceleration);
+ 
     moveAll();
   }
+
+  Logger::debug("Done.");
 }
 
 /* ------------------------------ Single point ------------------------------ */
 
-void reachCartesian(const Point& p) {
+void reachCartesian(const Point& p,
+  const float restVelocity = MIN_VELOCITY_STEPS_S, 
+  const float cruiseVelocity = MID_VELOCITY_STEPS_S, 
+  const float acceleration = ACCELERATION
+  ) {
   /**
    * Reach the target cartesian point. We will first compute the joint values with 
    * the Inverse Kinematics routine, then translate them to steps and then move
@@ -203,7 +247,12 @@ void reachCartesian(const Point& p) {
   }
 }
 
-void reachJoint(const IKSolution& solution) {
+void reachJoint(
+    const IKSolution& solution, 
+    const float restVelocity = MIN_VELOCITY_STEPS_S, 
+    const float cruiseVelocity = MID_VELOCITY_STEPS_S, 
+    const float acceleration = ACCELERATION
+  ) {
   /**
    * Reach the target joint configuration. Compute the steps required to reach
    * the joint configuration and then move by those steps.
@@ -213,15 +262,33 @@ void reachJoint(const IKSolution& solution) {
 
   Steps steps = IKSolution2Steps(solution);
 
-  float initialVelocity = MIN_VELOCITY_STEPS_S;
-  float maxVelocity = MAX_VELOCITY_STEPS_S;
-  float finalVelocity = MIN_VELOCITY_STEPS_S;
-  float acceleration = ACCELERATION;
+  // Find longest distance to cover
+  int distance1 = abs(stepper1.getCurrentPosition() - steps.s1);
+  int distance2 = abs(stepper2.getCurrentPosition() - steps.s2);
+  int distance3 = abs(stepper3.getCurrentPosition() - steps.s3);
 
-  stepper1.moveToPosition(steps.s1, initialVelocity, maxVelocity, finalVelocity, acceleration);
-  stepper2.moveToPosition(steps.s2, initialVelocity, maxVelocity, finalVelocity, acceleration);
-  stepper3.moveToPosition(steps.s3, initialVelocity, maxVelocity, finalVelocity, acceleration);
+  float maxSteps = max(distance1, max(distance2, distance3)) * 1.0;
 
+  // The motor that needs to move the most steps should move at full velocity and acceleration
+  // while the other motor's velocity and acceleration are scaled proportionally to match 
+  // the duration of the motion of the first one
+  float scaleFactor1 = distance1 != 0 ? maxSteps / distance1 : 1;
+  float scaleFactor2 = distance2 != 0 ? maxSteps / distance2 : 1;
+  float scaleFactor3 = distance3 != 0 ? maxSteps / distance3 : 1;
+
+  // Define velocities
+  float v1i = restVelocity / scaleFactor1;
+  float v2i = restVelocity / scaleFactor2;
+  float v3i = restVelocity / scaleFactor3;
+
+  float v1f = restVelocity / scaleFactor1;
+  float v2f = restVelocity / scaleFactor2;
+  float v3f = restVelocity / scaleFactor3;
+
+  stepper1.moveToPosition(steps.s1, v1i, cruiseVelocity, v1f, acceleration);
+  stepper2.moveToPosition(steps.s2, v2i, cruiseVelocity, v2f, acceleration);
+  stepper3.moveToPosition(steps.s3, v3i, cruiseVelocity, v3f, acceleration);
+ 
   moveAll();
 }
 
@@ -243,7 +310,7 @@ Steps IKSolution2Steps(const IKSolution& solution) {
    */
 
   Steps steps;
-  steps.s1 = solution.q1 * JOINT_1_STEPS_PER_M;
+  steps.s1 = -solution.q1 * JOINT_1_STEPS_PER_M;
   steps.s2 = solution.q2 * JOINT_2_STEPS_PER_RAD;
 
   // The third joint is a special case since we need to adjust it by a factor
@@ -309,6 +376,16 @@ void homeAll() {
   Logger::debug("Axis 2 homed.");
 
   reachJoint(IKSolution(0.1, 0, 0));
+}
+
+void enable() {
+  digitalWrite(ENABLE, LOW);
+  Logger::debug("Steppers enabled.");
+}
+
+void disable() {
+  digitalWrite(ENABLE, HIGH);
+  Logger::debug("Steppers disabled.");
 }
 
 /* ---------------------------------- Loop ---------------------------------- */
