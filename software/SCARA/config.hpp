@@ -13,14 +13,6 @@ const byte STEPPER_3_DIR_PIN = 5;
 
 const byte ENABLE = 8;  // active-low (i.e. LOW turns on the drivers)
 
-// Speed profile
-
-// Low level control of the actuators
-const int MIN_PULSE_DELAY = 200;
-const int MAX_PULSE_DELAY = 800;
-const int ACC_RATE = 800;
-const int INCREMENT = 1;
-
 // Velocity and acceleration
 
 /*
@@ -37,14 +29,14 @@ const int INCREMENT = 1;
  * 800 = 1000000/x -> x = 1250
  */
 
-const float MAX_VELOCITY_STEPS_S = 2500.0;
-const float MID_VELOCITY_STEPS_S = 1500.0;
-const float MIN_VELOCITY_STEPS_S = 500.0;
-const float ACCELERATION = 500.0;
+const float MAX_VELOCITY_STEPS_S = 10000.0;
+const float MID_VELOCITY_STEPS_S = 10000.0;
+const float MIN_VELOCITY_STEPS_S = 5000.0;
+const float ACCELERATION = 5000.0;
 
 // Homing and limit switches
 
-const int MAX_HOMING_STEPS = 10000;
+const int MAX_HOMING_STEPS = 500000;
 
 const byte STEPPER_1_LIMIT_SWITCH_PIN = 9;
 const byte STEPPER_2_LIMIT_SWITCH_PIN = 10;

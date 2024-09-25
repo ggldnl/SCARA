@@ -79,10 +79,16 @@ void setup() {
   */
 
   // Circle
-  trajectory.pushBack(Point(0.170, 0.000, 0.1));
-  trajectory.pushBack(Point(0.120, 0.050, 0.1));
-  trajectory.pushBack(Point(0.070, 0.000, 0.1));
-  trajectory.pushBack(Point(0.120, -0.050, 0.1));
+  trajectory.pushBack(Point(0.125, 0.000, 0.1));
+  trajectory.pushBack(Point(0.124, 0.003, 0.1));
+  trajectory.pushBack(Point(0.122, 0.005, 0.1));
+  trajectory.pushBack(Point(0.118, 0.005, 0.1));
+  trajectory.pushBack(Point(0.116, 0.003, 0.1));
+  trajectory.pushBack(Point(0.115, 0.000, 0.1));
+  trajectory.pushBack(Point(0.116, -0.003, 0.1));
+  trajectory.pushBack(Point(0.118, -0.005, 0.1));
+  trajectory.pushBack(Point(0.122, -0.005, 0.1));
+  trajectory.pushBack(Point(0.124, -0.003, 0.1));
 
   executeTrajectory(trajectory);
   // reachCartesian(trajectory[0]);
@@ -366,7 +372,7 @@ void homeAll() {
    */
 
   // Move the first axis down for 10000 steps or until the limit switch registers a press
-  homeAxis(stepper1, button1, -10000);
+  homeAxis(stepper1, button1, MAX_HOMING_STEPS);
   Logger::debug("Axis 0 homed.");
 
   // homeAxis(stepper2, button2);
