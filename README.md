@@ -31,6 +31,18 @@ Below are two renders of the arm in Fusion 360; the left image shows it in the s
 
 The original project utilized a DEVIA board, which is an Arduino Zero with built-in sockets for three A4988 stepper motor drivers and onboard drivers for four servos. I opted for an Arduino Uno paired with a CNC shield since it is more accessible and I happened to have the two lying around. This setup provides four sockets for stepper drivers and three pins that can be used for the endstops or the end-effector. I also added a 12V mini fan (used for 3d printers) to cool the stepper drivers.
 
+## Brief software stack overview
+
+- `vector.hpp`: variable-length vector template class;
+- `matrix.hpp`: matrix template class; each matrix has fixed size (not resizable) and exposes methods to compute the determinant, transpose, inverse and even the pseudoinverse along with the classic utility methods (e.g. indexing, multiplication by matrix/vector etc.);
+- `structs.hpp`: structures used to make the code more readable and compact (Point, IKSolution, Steps);
+- `button.hpp`: code to handle button events (button pressed and released);
+- `logger.hpp`: logger to print formatted strings filtering by logging level (info, warn, error, debug);
+- `stepper.hpp`: code to control a stepper motor and make it cover a distance following a trapezoidal/triangular speed profile (everything is expressed in steps, steps/s, steps/s^2);
+- `config.hpp`: config file with kinematic structure and velocity/acceleration related constants; You can edit this to adapt the code to your needs;
+- `kinematics.hpp`: everything related to this particular robot's kinematics (direct and inverse kinematics, joint velocities computation, ...);
+- `SCARA.ino`: main script with routines to follow a specified trajectory and reach a cartesian point or a joint configuration;
+
 ## Examples
 
 TODO
