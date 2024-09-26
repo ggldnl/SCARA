@@ -119,6 +119,7 @@ Calling `executeTrajectory(trajectory)` after this will make the robot execute t
 
 ## TODO
 
+- [ ] Add more renderings
 - [ ] Add assembly instructions
 - [ ] Add schematic diagram
 - [ ] Design a universal mounting block to attach tools to the forearm
