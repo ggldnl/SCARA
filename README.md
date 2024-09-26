@@ -37,6 +37,8 @@ TODO
 
 ## 3D printing
 
+You can find all the parts to print in the [hardware/printed_parts](/hardware/printed_parts) folder. Alternatively, you can get them on the platforms below: 
+
 <p align="center">
   <a href="https://makerworld.com/en/models/572256#profileId-492414">
     <img src="https://gist.githubusercontent.com/ggldnl/0cb170e629d8188959e9c26c36bc32bd/raw/button_makerworld_fixed_w200_h50.png" alt="Open on Makerworld"/>
