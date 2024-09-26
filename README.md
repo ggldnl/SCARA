@@ -16,32 +16,20 @@ Considering the situation, I decided to build my own robotic arm taking inspirat
 - endstops for each motor, essential for calibration and to recover from missed steps.
 - heat set inserts to avoid screwing directly into the plastic.
 - simplified assembly for joints 2 and 3.
-- improved support for joints 2 and 3 from the `z_base`, now consisting of two pieces.
+- improved `z_base` support to joints 2 and 3, now consisting of two pieces.
 - control box for better organization, with optional fan to keep the stepper driver cool.
 - universal tool mounting point (not limited to the previous servo motor insert).
 - cleaner code with no external dependency (I wrote all the libraries I used), modular and easy to read and understand .
 
-Below are two renders of the arm in Fusion 360; the left image shows it in the standard material and the right one has colored plastic components that match the actual arm I built.
+Below are some renders of the arm in Fusion 360:
 
 <p align="center">
   <img src="media/SCARA.png" alt="Standard Material" width="45%" />
   <img src="media/SCARA_colored.png" alt="Colored Plastic" width="45%" />
-  <p align="center">* missing screws, nuts and heat set inserts</p>
+  <!-- <p align="center">* missing screws, nuts and heat set inserts</p> -->
 </p>
 
-The original project utilized a DEVIA board, which is an Arduino Zero with built-in sockets for three A4988 stepper motor drivers and onboard drivers for four servos. I opted for an Arduino Uno paired with a CNC shield since it is more accessible and I happened to have the two lying around. This setup provides four sockets for stepper drivers and three pins that can be used for the endstops or the end-effector. I also added a 12V mini fan (used for 3d printers) to cool the stepper drivers.
-
-## Brief software stack overview
-
-- `vector.hpp`: variable-length vector template class;
-- `matrix.hpp`: matrix template class; each matrix has fixed size (not resizable) and exposes methods to compute the determinant, transpose, inverse and even the pseudoinverse along with the classic utility methods (e.g. indexing, multiplication by matrix/vector etc.);
-- `structs.hpp`: structures used to make the code more readable and compact (Point, IKSolution, Steps);
-- `button.hpp`: code to handle button events (button pressed and released);
-- `logger.hpp`: logger to print formatted strings filtering by logging level (info, warn, error, debug);
-- `stepper.hpp`: code to control a stepper motor and make it cover a distance following a trapezoidal/triangular speed profile (everything is expressed in steps, steps/s, steps/s^2);
-- `config.hpp`: config file with kinematic structure and velocity/acceleration related constants; You can edit this to adapt the code to your needs;
-- `kinematics.hpp`: everything related to this particular robot's kinematics (direct and inverse kinematics, joint velocities computation, ...);
-- `SCARA.ino`: main script with routines to follow a specified trajectory and reach a cartesian point or a joint configuration;
+The original project used a DEVIA board, which is an Arduino Zero with built-in sockets for three A4988 stepper motor drivers and onboard drivers for four servos. I opted for an Arduino Uno paired with a CNC shield because it is more accessible, easy to find, and I happened to have both lying around. This setup provides four sockets for stepper drivers and three pins that can be used for the endstops or the end-effector. I also added a 12V mini fan (used for 3d printers) to cool the stepper drivers but this is totally optional. 
 
 ## Examples
 
@@ -69,22 +57,69 @@ TODO
 
 ## Assembly instructions
 
-Refer [here](/hardware/BOM.md) for the Bill of Materials and some notes on what you will need.
+Refer [here](/hardware/BOM.md) for the Bill of Materials and some notes on what you will need. [Here](https://instructions.online/?id=12092-scara) you can find the assembly instructions ([pdf version](/hardware/assembly.pdf)).
+
+Use this QR code if you want to follow the instructions on another device:
 
 <p align="center">
   <img src="media/cadasio.png"/>
 </p>
 
+<!--
 <p align="center">
   <a href="https://instructions.online/?id=12092-scara">
     <img src="https://gist.githubusercontent.com/ggldnl/0cb170e629d8188959e9c26c36bc32bd/raw/button_assembly-instructions_fixed_w300_h50.png" alt="Assembly instructions"/>
   </a>
 </p>
+-->
+
+## Electronics
+
+<p align="center">
+  <img src="media/electronics.png"/>
+</p>
+
+## Brief software overview
+
+Summary of the content of each file:
+
+- `vector.hpp`: variable-length vector template class;
+- `matrix.hpp`: matrix template class; each matrix has fixed size (not resizable) and exposes methods to compute the determinant, transpose, inverse and even the pseudoinverse along with the classic utility methods   (e.g. indexing, multiplication by matrix/vector etc.);
+- `structs.hpp`: structures used to make the code more readable and compact (Point, IKSolution, Steps);
+- `button.hpp`: code to handle button events (button pressed and released);
+- `logger.hpp`: logger to print formatted strings filtering by logging level (info, warn, error, debug);
+- `stepper.hpp`: code to control a stepper motor and make it cover a distance following a trapezoidal/triangular speed profile (everything is expressed in steps, steps/s, steps/s^2);
+- `config.hpp`: config file with kinematic structure and velocity/acceleration related constants; You can edit this to adapt the code to your needs;
+- `kinematics.hpp`: everything related to this particular robot's kinematics (direct and inverse kinematics, joint velocities computation, ...);
+- `SCARA.ino`: main script with routines to follow a specified trajectory and reach a cartesian point or a joint configuration;
+
+## Specify your trajectory
+
+A trajectory is a geometric path + a timing law. In our case things are much simpler and a trajectory is assumed to be a list of points to be reached one after another with a certain velocity (in steps/s). Even if the code to compute joint velocities and thus realize a particular end effector velocity is partially there, I'm not using it (yet?). 
+
+To define your trajectory, replace the section in `SCARA.ino` where the points are added to the trajectory vector. The points in the following example describe a circular trajectory with radius 0.05, center (0.12, 0) and z=0.05 meters:
+
+```cpp
+  // Circle (10 points) with radius 0.05  and center (0.12, 0) [meters]
+  trajectory.pushBack(Point(0.17, 0.00, 0.05));
+  trajectory.pushBack(Point(0.16, 0.03, 0.05));
+  trajectory.pushBack(Point(0.14, 0.05, 0.05));
+  trajectory.pushBack(Point(0.10, 0.05, 0.05));
+  trajectory.pushBack(Point(0.08, 0.03, 0.05));
+  trajectory.pushBack(Point(0.07, 0.00, 0.05));
+  trajectory.pushBack(Point(0.08, -0.03, 0.05));
+  trajectory.pushBack(Point(0.10, -0.05, 0.05));
+  trajectory.pushBack(Point(0.14, -0.05, 0.05));
+  trajectory.pushBack(Point(0.16, -0.03, 0.05));
+```
+
+Calling `executeTrajectory(trajectory)` after this will make the robot execute the trajectory (if feasible i.e. all points are within the reachable workspace and the velocities and acceleration are well conditioned). By default the velocities and acceleration used are the ones defined in the `config.cpp` file but can bypassed using the `executeTrajectory` method's parameters.
 
 ## TODO
 
+- [ ] Add assembly instructions
+- [ ] Add schematic diagram
 - [ ] Design a universal mounting block to attach tools to the forearm
 - [x] Forget AccelStepper/MobaTools and write your own library to simultaneously control multiple steppers
 - [ ] Add forearm calibration endstop
 - [x] Complete the BOM with the list of M3 screws needed
-- [ ] Add schematics
