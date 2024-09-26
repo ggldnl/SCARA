@@ -59,7 +59,7 @@ You can find all the parts to print in the [hardware/printed_parts](/hardware/pr
 
 ## Assembly instructions
 
-Refer [here](/hardware/BOM.md) for the Bill of Materials and some notes on what you will need. [Here](https://instructions.online/?id=12092-scara) you can find the assembly instructions ([pdf version](/hardware/assembly.pdf)).
+Check out [here](/hardware/BOM.md) for the Bill of Materials and some notes on what you will need. [Here](https://instructions.online/?id=12092-scara) you can find the assembly instructions ([pdf version](/hardware/assembly.pdf)).
 
 Use this QR code if you want to follow the instructions on another device:
 
