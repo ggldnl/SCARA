@@ -18,7 +18,6 @@ void disable();
 void enable();
 
 
-
 // Define the steppers
 StepperMotor stepper1(STEPPER_1_STEP_PIN, STEPPER_1_DIR_PIN);
 StepperMotor stepper2(STEPPER_2_STEP_PIN, STEPPER_2_DIR_PIN);
@@ -60,14 +59,13 @@ void setup() {
 
   // Add the points to the trajectory
 
-  /*
   // 3-point line
+  /*
   trajectory.pushBack(Point(0.10, -0.14, 0.1));
   trajectory.pushBack(Point(0.10, 0.0, 0.1));;
   trajectory.pushBack(Point(0.10, 0.14, 0.1));
   */
 
-  /*
   // 10-point line
   trajectory.pushBack(Point(0.10, -0.14, 0.1));
   trajectory.pushBack(Point(0.10, -0.11, 0.1));
@@ -79,9 +77,9 @@ void setup() {
   trajectory.pushBack(Point(0.10, 0.08, 0.1));
   trajectory.pushBack(Point(0.10, 0.11, 0.1));
   trajectory.pushBack(Point(0.10, 0.14, 0.1));
-  */
 
   // Circle
+  /*
   trajectory.pushBack(Point(0.125, 0.000, 0.05));
   trajectory.pushBack(Point(0.124, 0.003, 0.05));
   trajectory.pushBack(Point(0.122, 0.005, 0.05));
@@ -92,9 +90,9 @@ void setup() {
   trajectory.pushBack(Point(0.118, -0.005, 0.05));
   trajectory.pushBack(Point(0.122, -0.005, 0.05));
   trajectory.pushBack(Point(0.124, -0.003, 0.05));
+  */
 
-  // executeTrajectory(trajectory);
-  // reachCartesian(trajectory[0]);
+  executeTrajectory(trajectory);
 
   delay(2000);
   disable();
@@ -164,12 +162,10 @@ void executeTrajectory(
     double v2f = i == trajectory.getSize() - 1 ? restVelocity : cruiseVelocity;
     double v3f = i == trajectory.getSize() - 1 ? restVelocity : cruiseVelocity;
 
-    Logger::debug("Original velocities:");
-    Logger::debug("{} -> {}", v1i, v1f);
-    Logger::debug("{} -> {}", v2i, v2f);
-    Logger::debug("{} -> {}", v3i, v3f);
-    Logger::debug("");
-  
+    // Logger::debug("{} / {} = {} -> {} / {} = {}", v1i, scaleFactor1, v1i / scaleFactor1, v1f, scaleFactor1, v1f / scaleFactor1);
+    // Logger::debug("{} / {} = {} -> {} / {} = {}", v2i, scaleFactor2, v2i / scaleFactor2, v2f, scaleFactor2, v2f / scaleFactor2);
+    // Logger::debug("{} / {} = {} -> {} / {} = {}", v3i, scaleFactor3, v3i / scaleFactor3, v3f, scaleFactor3, v3f / scaleFactor3);
+
     // Scale velocities and accelerations
     v1i = v1i / scaleFactor1;
     v2i = v2i / scaleFactor2;
@@ -200,11 +196,6 @@ void executeTrajectory(
     initialVelocities.fillRow(i, vi);
     finalVelocities.fillRow(i, vf);
 
-    Logger::debug("stepper1.moveToPosition({}, {}, {}, {}, {})", steps.s1, v1i, cruiseVelocity, v1f, acceleration);
-    Logger::debug("stepper2.moveToPosition({}, {}, {}, {}, {})", steps.s2, v2i, cruiseVelocity, v2f, acceleration);
-    Logger::debug("stepper3.moveToPosition({}, {}, {}, {}, {})", steps.s3, v3i, cruiseVelocity, v3f, acceleration);
-    Logger::debug("");
-
     // Update the emulated steppers
     currSteps.s1 = steps.s1;
     currSteps.s2 = steps.s2;
@@ -225,7 +216,7 @@ void executeTrajectory(
     moveAll();
   }
 
-  Logger::debug("Done.");
+  Logger::debug("Trajectory executed.");
 }
 
 /* ------------------------------ Single point ------------------------------ */
@@ -303,10 +294,6 @@ void reachJoint(
   Logger::debug("{} -> {}", v3i, v3f);
   Logger::debug("");
 
-  Logger::debug("stepper1.moveToPosition({}, {}, {}, {}, {})", steps.s1, v1i, cruiseVelocity, v1f, acceleration);
-  Logger::debug("stepper2.moveToPosition({}, {}, {}, {}, {})", steps.s2, v2i, cruiseVelocity, v2f, acceleration);
-  Logger::debug("stepper3.moveToPosition({}, {}, {}, {}, {})", steps.s3, v3i, cruiseVelocity, v3f, acceleration);
-  Logger::debug("");
   Logger::debug("-------------------------------------------------");
 
   stepper1.moveToPosition(steps.s1, v1i, cruiseVelocity, v1f, acceleration);
