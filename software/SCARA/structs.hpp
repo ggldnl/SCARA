@@ -25,13 +25,18 @@ struct IKSolution {
 
 // Structure to hold the steps for each motor
 struct Steps {
-    int s1, s2, s3;  // Steps
+
+    // On the arduino I'm using, an int is only 2 bytes. A 16-bit signed integer 
+    // has a range of values from -32,768 to 32,767, meaning that any value 
+    // larger than 32,767 will overflow. This led to many problems. A long
+    // has a wider range.
+    long s1, s2, s3;  // Steps
 
     // Default constructor
     Steps() : s1(0), s2(0), s3(0) {}
 
     // Constructor to initialize the Point
-    Steps(int _s1, int _s2, int _s3) : s1(_s1), s2(_s2), s3(_s3) {}
+    Steps(long _s1, long _s2, long _s3) : s1(_s1), s2(_s2), s3(_s3) {}
 
 };
 

@@ -29,14 +29,14 @@ const byte ENABLE = 8;  // active-low (i.e. LOW turns on the drivers)
  * 800 = 1000000/x -> x = 1250
  */
 
-const float MAX_VELOCITY_STEPS_S = 10000.0;
-const float MID_VELOCITY_STEPS_S = 10000.0;
-const float MIN_VELOCITY_STEPS_S = 5000.0;
-const float ACCELERATION = 5000.0;
+const double MAX_VELOCITY_STEPS_S = 10000.0;
+const double MID_VELOCITY_STEPS_S = 10000.0;
+const double MIN_VELOCITY_STEPS_S = 5000.0;
+const double ACCELERATION = 5000.0;
 
 // Homing and limit switches
 
-const int MAX_HOMING_STEPS = 500000;
+const long MAX_HOMING_STEPS = 1000000;
 
 const byte STEPPER_1_LIMIT_SWITCH_PIN = 9;
 const byte STEPPER_2_LIMIT_SWITCH_PIN = 10;
@@ -56,9 +56,9 @@ const float JOINT_1_LEAD = 8.0;                                 // leadscrew pit
 const float JOINT_2_REDUCTION = (72.0 / 16.0);                  // first stage
 const float JOINT_3_REDUCTION = (62.0 / 16.0) * (62.0 / 33.0);  // first stage * second stage
 
-const float JOINT_1_STEPS_PER_M = (STEPPER_1_STEPS_PER_REVOLUTION * STEPPER_1_MICROSTEPPING) / (JOINT_1_LEAD / 1000.0);           // steps/m
-const float JOINT_2_STEPS_PER_RAD = (STEPPER_2_STEPS_PER_REVOLUTION * STEPPER_2_MICROSTEPPING / (2 * M_PI)) * JOINT_2_REDUCTION;  // steps/rad
-const float JOINT_3_STEPS_PER_RAD = (STEPPER_3_STEPS_PER_REVOLUTION * STEPPER_3_MICROSTEPPING / (2 * M_PI)) * JOINT_3_REDUCTION;  // steps/rad
+const double JOINT_1_STEPS_PER_M = (STEPPER_1_STEPS_PER_REVOLUTION * STEPPER_1_MICROSTEPPING) / (JOINT_1_LEAD / 1000.0);           // steps/m
+const double JOINT_2_STEPS_PER_RAD = (STEPPER_2_STEPS_PER_REVOLUTION * STEPPER_2_MICROSTEPPING / (2 * M_PI)) * JOINT_2_REDUCTION;  // steps/rad
+const double JOINT_3_STEPS_PER_RAD = (STEPPER_3_STEPS_PER_REVOLUTION * STEPPER_3_MICROSTEPPING / (2 * M_PI)) * JOINT_3_REDUCTION;  // steps/rad
 
 // Link lenghts
 
