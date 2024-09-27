@@ -81,6 +81,8 @@ Use this QR code if you want to follow the instructions on another device:
   <img src="media/electronics.png"/>
 </p>
 
+After assembling everything and putting together the electronics: download the project > open `software/SCARA/SCARA.ino` from the arduino IDE > compile and upload to the arduino.
+
 ## Brief software overview
 
 Summary of the content of each file:
