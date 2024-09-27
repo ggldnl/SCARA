@@ -27,6 +27,9 @@ const byte ENABLE = 8;  // active-low (i.e. LOW turns on the drivers)
  * delay = 1000000/velocity
  * 400 = 1000000/x -> x = 2500
  * 800 = 1000000/x -> x = 1250
+ * 
+ * The above holds for microstepping 1. Switching to microstepping 16
+ * allowed for a wider range of velocities and accelerations.
  */
 
 const double MAX_VELOCITY_STEPS_S = 10000.0;
