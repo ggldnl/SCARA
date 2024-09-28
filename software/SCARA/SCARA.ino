@@ -7,9 +7,9 @@
 #include "kinematics.hpp"
 
 // Function declarations
-void executeTrajectory(Vector<Point>&, const double = MIN_VELOCITY_STEPS_S, const double = MID_VELOCITY_STEPS_S, const double = ACCELERATION);
-void reachCartesian(const Point&, const double = MIN_VELOCITY_STEPS_S, const double = MID_VELOCITY_STEPS_S, const double = ACCELERATION);
-void reachJoint(const IKSolution&, const double = MIN_VELOCITY_STEPS_S, const double = MID_VELOCITY_STEPS_S, const double = ACCELERATION);
+void executeTrajectory(Vector<Point>&, const double = MIN_VELOCITY_STEPS_S, const double = MAX_VELOCITY_STEPS_S, const double = ACCELERATION);
+void reachCartesian(const Point&, const double = MIN_VELOCITY_STEPS_S, const double = MAX_VELOCITY_STEPS_S, const double = ACCELERATION);
+void reachJoint(const IKSolution&, const double = MIN_VELOCITY_STEPS_S, const double = MAX_VELOCITY_STEPS_S, const double = ACCELERATION);
 Steps IKSolution2Steps(const IKSolution&);
 void homeAxis(StepperMotor&, Button&, long, double = MIN_VELOCITY_STEPS_S, double = MIN_VELOCITY_STEPS_S, double = MIN_VELOCITY_STEPS_S, double = ACCELERATION);
 void homeAll();
@@ -92,7 +92,10 @@ void setup() {
   trajectory.pushBack(Point(0.124, -0.003, 0.05));
   */
 
-  executeTrajectory(trajectory);
+  // executeTrajectory(trajectory);
+  reachCartesian(Point(0.04, 0, 0.01));
+  delay(1000);
+  reachCartesian(Point(L1 + L2, 0, 0.01), MIN_VELOCITY_STEPS_S, MIN_VELOCITY_STEPS_S);
 
   delay(2000);
   disable();
@@ -102,9 +105,9 @@ void setup() {
 
 void executeTrajectory(
     Vector<Point>& trajectory, 
-    const double restVelocity = MIN_VELOCITY_STEPS_S, 
-    const double cruiseVelocity = MID_VELOCITY_STEPS_S, 
-    const double acceleration = ACCELERATION
+    const double restVelocity, 
+    const double cruiseVelocity, 
+    const double acceleration
   ) {
 
   // Vectors to buffer computations
@@ -222,9 +225,9 @@ void executeTrajectory(
 /* ------------------------------ Single point ------------------------------ */
 
 void reachCartesian(const Point& p,
-  const double restVelocity = MIN_VELOCITY_STEPS_S, 
-  const double cruiseVelocity = MID_VELOCITY_STEPS_S, 
-  const double acceleration = ACCELERATION
+  const double restVelocity, 
+  const double cruiseVelocity, 
+  const double acceleration
   ) {
   /**
    * Reach the target cartesian point from the current position using a 
@@ -249,9 +252,9 @@ void reachCartesian(const Point& p,
 
 void reachJoint(
     const IKSolution& solution, 
-    const double restVelocity = MIN_VELOCITY_STEPS_S, 
-    const double cruiseVelocity = MID_VELOCITY_STEPS_S, 
-    const double acceleration = ACCELERATION
+    const double restVelocity, 
+    const double cruiseVelocity, 
+    const double acceleration
   ) {
   /**
    * Reach the target joint configuration using a trapezoidal speed profile
@@ -266,6 +269,7 @@ void reachJoint(
   long distance1 = abs(stepper1.getCurrentPosition() - steps.s1);
   long distance2 = abs(stepper2.getCurrentPosition() - steps.s2);
   long distance3 = abs(stepper3.getCurrentPosition() - steps.s3);
+
   Logger::debug("Distances: ({}, {}, {})", distance1, distance2, distance3);
   Logger::debug("");
 
@@ -320,7 +324,6 @@ Steps IKSolution2Steps(const IKSolution& solution) {
    * by applying reduction factors and compensations.
    */
 
-
   Steps steps;
   steps.s1 = solution.q1 * JOINT_1_STEPS_PER_M;
   steps.s2 = solution.q2 * JOINT_2_STEPS_PER_RAD;
@@ -339,10 +342,10 @@ void homeAxis(
     StepperMotor& stepper, 
     Button& limitSwitch, 
     long homingSteps, 
-    double initialVelocity = MIN_VELOCITY_STEPS_S, 
-    double maxVelocity = MIN_VELOCITY_STEPS_S, 
-    double finalVelocity = MIN_VELOCITY_STEPS_S,
-    double acceleration = ACCELERATION
+    double initialVelocity, 
+    double maxVelocity, 
+    double finalVelocity,
+    double acceleration
   ) {
   /**
    * Home the specified axis by moving the motor with constant speed until button fires.

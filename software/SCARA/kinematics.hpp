@@ -12,7 +12,9 @@ bool isReachable(const Point& p) {
 }
 
 bool inverseKinematics(const Point& p, IKSolution& solution) {
+
   if (!isReachable(p)) {
+    Logger::debug("Distance: {}", sqrt(p.x * p.x + p.y * p.y));
     return false;  // The point is out of reach
   }
 

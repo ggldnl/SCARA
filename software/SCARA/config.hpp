@@ -33,8 +33,8 @@ const byte ENABLE = 8;  // active-low (i.e. LOW turns on the drivers)
  */
 
 const double MAX_VELOCITY_STEPS_S = 10000.0;
-const double MID_VELOCITY_STEPS_S = 10000.0;
-const double MIN_VELOCITY_STEPS_S = 5000.0;
+const double MID_VELOCITY_STEPS_S = 5000.0;
+const double MIN_VELOCITY_STEPS_S = 1000.0;
 const double ACCELERATION = 5000.0;
 
 // Homing and limit switches
@@ -66,7 +66,8 @@ const double JOINT_3_STEPS_PER_RAD = (STEPPER_3_STEPS_PER_REVOLUTION * STEPPER_3
 // Link lenghts
 
 const float L1 = 0.094; // Link 2 length in mm
-const float L2 = 0.080; // Link 3 length in mm
+// const float L2 = 0.080; // Link 3 length in mm
+const float L2 = 0.094; // Link 3 + pen plotter length
 
 // Joint limits
 
@@ -78,7 +79,7 @@ const float JOINT_2_MIN_LIMIT = -M_PI / 2;
 const float JOINT_2_MAX_LIMIT = M_PI / 2;
 
 // The third joint angle should be within the [-8pi/9, +8pi/9] range
-const float JOINT_3_MIN_LIMIT = -(8 * M_PI) / 9;
-const float JOINT_3_MAX_LIMIT = (8 * M_PI) / 9;
+const float JOINT_3_MIN_LIMIT = -(8 * M_PI) / 9;  // -160 deg
+const float JOINT_3_MAX_LIMIT = (8 * M_PI) / 9;   // 160 deg
 
 #endif // CONFIG_HPP
