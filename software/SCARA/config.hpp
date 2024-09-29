@@ -33,12 +33,12 @@ const byte ENABLE = 8;  // active-low (i.e. LOW turns on the drivers)
  */
 
 const double MAX_VELOCITY_STEPS_S = 10000.0;
-const double MID_VELOCITY_STEPS_S = 5000.0;
-const double MIN_VELOCITY_STEPS_S = 1000.0;
+const double MIN_VELOCITY_STEPS_S = 500.0;
 const double ACCELERATION = 5000.0;
 
 // Homing and limit switches
 
+const double HOMING_VELOCITY_STEPS_S = 5000.0;
 const long MAX_HOMING_STEPS = 1000000;
 
 const byte STEPPER_1_LIMIT_SWITCH_PIN = 9;
