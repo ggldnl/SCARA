@@ -54,6 +54,34 @@ Vector<IKSolution> inverseKinematicsVector(const Vector<Point>& points) {
   return solutions;
 }
 
+Vector<Point> interpolate3D(const Point& start, const Point& end, const int steps) {
+
+    Vector<Point> interpolatedPoints;
+
+    // If the number of steps is less than or equal to 1, return only the start point
+    if (steps <= 1) {
+        interpolatedPoints.pushBack(start);
+        return interpolatedPoints;
+    }
+
+    for (int i = 0; i <= steps; ++i) {
+        
+        // Interpolation factor t between 0 and 1
+        float t = static_cast<float>(i) / steps;
+
+        // Compute the interpolated point
+        Point point(
+            start.x + t * (end.x - start.x),
+            start.y + t * (end.y - start.y),
+            start.z + t * (end.z - start.z)
+        );
+
+        interpolatedPoints.pushBack(point);
+    }
+
+    return interpolatedPoints;
+}
+
 const Matrix<float> getJacobian(const IKSolution& joints) {
   
   Matrix<float> jacobian(3, 3);
