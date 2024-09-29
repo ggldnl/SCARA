@@ -21,7 +21,7 @@ Considering the situation, I decided to build my own robotic arm taking inspirat
 - universal tool mounting point (not limited to the previous servo motor insert).
 - cleaner code with no external dependency (I wrote all the libraries I used), modular and easy to read and understand .
 
-Below are some renders of the arm in Fusion 360:
+Some renders of the arm in Fusion 360:
 
 <p align="center">
   <img src="media/SCARA.png" alt="Standard Material" width="45%" />
@@ -82,7 +82,7 @@ Use this QR code if you want to follow the instructions on another device:
 </p>
 
 <p align="center">
-  <img src="media/electronics_limit_switches.png"/>
+    <img src="media/electronics_limit_switches.png"/>
 </p>
 
 After assembling everything and putting together the electronics: download the project > open `software/SCARA/SCARA.ino` from the arduino IDE > compile and upload to the arduino.
