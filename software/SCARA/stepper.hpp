@@ -158,10 +158,6 @@ class StepperMotor {
             digitalWrite(pulPin, HIGH);
             delayMicroseconds(1);
             digitalWrite(pulPin, LOW);
-
-            // Simulate step by printing velocity (this would step the motor in a real setup)
-            std::cout << "Step: " << currentStep << ", Position: " << currentPosition
-                      << ", Velocity: " << currentVelocity << " steps/sec" << std::endl;
         }
     }
 
