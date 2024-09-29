@@ -21,6 +21,30 @@ private:
 
 public:
 
+    // Iterator class for the vector
+    class Iterator {
+    private:
+        T* ptr;  // Pointer to the current element
+    public:
+        Iterator(T* _ptr) : ptr(_ptr) {}
+
+        // Overload dereference operator
+        T& operator*() {
+            return *ptr;
+        }
+
+        // Overload pre-increment operator (e.g., ++it)
+        Iterator& operator++() {
+            ++ptr;
+            return *this;
+        }
+
+        // Overload equality operator (for comparison in loops)
+        bool operator!=(const Iterator& other) const {
+            return ptr != other.ptr;
+        }
+    };
+
     Vector() : Vector(2) {}
 
     Vector(size_t _capacity) {
@@ -125,6 +149,15 @@ public:
     // Clear the vector (reset size but keep capacity)
     void clear() {
         size = 0;
+    }
+
+    // Iterator functions
+    Iterator begin() {
+        return Iterator(data);  // Point to the start of the array
+    }
+
+    Iterator end() {
+        return Iterator(data + size);  // Point one past the last element
     }
 };
 
