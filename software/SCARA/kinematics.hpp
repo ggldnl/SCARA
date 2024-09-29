@@ -54,20 +54,20 @@ Vector<IKSolution> inverseKinematicsVector(const Vector<Point>& points) {
   return solutions;
 }
 
-Vector<Point> interpolate3D(const Point& start, const Point& end, const int steps) {
+Vector<Point> interpolateLine3D(const Point& start, const Point& end, const int points) {
 
-    Vector<Point> interpolatedPoints;
+    Vector<Point> interpolatedPoints(points);
 
     // If the number of steps is less than or equal to 1, return only the start point
-    if (steps <= 1) {
+    if (points <= 1) {
         interpolatedPoints.pushBack(start);
         return interpolatedPoints;
     }
 
-    for (int i = 0; i <= steps; ++i) {
+    for (int i = 0; i <= points; ++i) {
         
         // Interpolation factor t between 0 and 1
-        float t = static_cast<float>(i) / steps;
+        float t = static_cast<float>(i) / points;
 
         // Compute the interpolated point
         Point point(
@@ -81,6 +81,56 @@ Vector<Point> interpolate3D(const Point& start, const Point& end, const int step
 
     return interpolatedPoints;
 }
+
+Vector<Point> interpolateArc3D(const Point& start, const Point& end, const Point& center, const int points) {
+
+    Vector<Point> interpolatedPoints(points);
+
+    // Vector from center to start and center to end
+    Point startToCenter = start - center;
+    Point endToCenter = end - center;
+
+    // Compute the radius (assumes both points are at the same distance from the center)
+    double radius = startToCenter.magnitude();
+
+    // Compute the angle between the start and end vectors using the dot product
+    double startAngle = atan2(startToCenter.y, startToCenter.x);
+    double endAngle = atan2(endToCenter.y, endToCenter.x);
+
+    // Ensure the arc goes in the correct direction (counterclockwise)
+    if (endAngle < startAngle) {
+        endAngle += 2 * M_PI;
+    }
+
+    // If steps is less than or equal to 1, return only the start point
+    if (points <= 1) {
+        interpolatedPoints.pushBack(start);
+        return interpolatedPoints;
+    }
+
+    // Interpolate points along the arc
+    for (int i = 0; i <= points; ++i) {
+      
+        // Interpolation factor t between 0 and 1
+        double t = static_cast<double>(i) / points;
+
+        // Calculate the interpolated angle between start and end
+        double angle = startAngle + t * (endAngle - startAngle);
+
+        // Calculate the position on the arc in the local 2D plane
+        double x = center.x + radius * cos(angle);
+        double y = center.y + radius * sin(angle);
+
+        // Linearly interpolate the z-coordinate between start and end
+        double z = start.z + t * (end.z - start.z);
+
+        // Add the new point to the vector
+        interpolatedPoints.pushBack(Point(x, y, z));
+    }
+
+    return interpolatedPoints;
+}
+
 
 const Matrix<float> getJacobian(const IKSolution& joints) {
   
