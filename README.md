@@ -81,6 +81,11 @@ Use this QR code if you want to follow the instructions on another device:
   <img src="media/electronics_stepper_motors.png"/>
 </p>
 
+Note:
+- Sometimes the cables can have a different color order at the extrema; you should match the connections in this picture;
+- Use 3 jumpers for each stepper driver to set the microstepping to 16 (this is what is currently in the config)
+  or change the `MICROSTEPPING` value in the config;
+
 <p align="center">
     <img src="media/electronics_limit_switches.png"/>
 </p>
