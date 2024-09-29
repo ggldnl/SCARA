@@ -11,8 +11,13 @@ struct Point {
     // Constructor to initialize the Point
     Point(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {}
 
-    String toString() const {
-        return String("Point(") + x + ", " + y + ", " + z + ")";
+    // Overload the - operator to subtract two Points, resulting in a Vector3D
+    Point operator-(const Point& other) const {
+        return Point(x - other.x, y - other.y, z - other.z);
+    }
+
+    double magnitude() const {
+      return sqrt(x * x + y * y + z * z);
     }
 };
 
@@ -25,10 +30,6 @@ struct IKSolution {
 
     // Constructor to initialize the Point
     IKSolution(float _q1, float _q2, float _q3) : q1(_q1), q2(_q2), q3(_q3) {}
-
-    String toString() const {
-        return String("IKSolution(") + q1 + ", " + q2 + ", " + q3 + ")";
-    }
 };
 
 // Structure to hold the steps for each motor
@@ -45,11 +46,6 @@ struct Steps {
 
     // Constructor to initialize the Point
     Steps(long _s1, long _s2, long _s3) : s1(_s1), s2(_s2), s3(_s3) {}
-
-    String toString() const {
-        return String("Steps(") + s1 + ", " + s2 + ", " + s3 + ")";
-    }
-
 };
 
 #endif
