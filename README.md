@@ -78,7 +78,11 @@ Use this QR code if you want to follow the instructions on another device:
 ## Electronics
 
 <p align="center">
-  <img src="media/electronics.png"/>
+  <img src="media/electronics_stepper_motors.png"/>
+</p>
+
+<p align="center">
+  <img src="media/electronics_limit_switches.png"/>
 </p>
 
 After assembling everything and putting together the electronics: download the project > open `software/SCARA/SCARA.ino` from the arduino IDE > compile and upload to the arduino.
