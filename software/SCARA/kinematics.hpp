@@ -14,7 +14,7 @@ bool isReachable(const Point& p) {
 bool inverseKinematics(const Point& p, IKSolution& solution) {
 
   if (!isReachable(p)) {
-    Logger::debug("Distance: {}", sqrt(p.x * p.x + p.y * p.y));
+    // Logger::debug("Distance: {}", sqrt(p.x * p.x + p.y * p.y));
     return false;  // The point is out of reach
   }
 
@@ -110,7 +110,7 @@ Vector<Point> interpolateArc3D(const Point& start, const Point& end, const Point
 
     // Interpolate points along the arc
     for (int i = 0; i <= points; ++i) {
-      
+
         // Interpolation factor t between 0 and 1
         double t = static_cast<double>(i) / points;
 
