@@ -58,35 +58,25 @@ void setup() {
 
   /* --------------------------- Execute trajectory --------------------------- */
 
-  reachCartesian(Point(0.04, 0.00, 0.03));
-  delay(1000);
-
-  /*
-  trajectory.pushBack(Point(0.17, 0.00, 0.05));
-  trajectory.pushBack(Point(0.16, 0.03, 0.05));
-  trajectory.pushBack(Point(0.14, 0.05, 0.05));
-  trajectory.pushBack(Point(0.10, 0.05, 0.05));
-  trajectory.pushBack(Point(0.08, 0.03, 0.05));
-  trajectory.pushBack(Point(0.07, 0.00, 0.05));
-  trajectory.pushBack(Point(0.08, -0.03, 0.05));
+  // Define an straight line
   trajectory.pushBack(Point(0.10, -0.05, 0.05));
-  trajectory.pushBack(Point(0.14, -0.05, 0.05));
-  trajectory.pushBack(Point(0.16, -0.03, 0.05));
-  trajectory.pushBack(Point(0.16, -0.03, 0.05));
+  trajectory.pushBack(Point(0.10, -0.04, 0.05));
+  trajectory.pushBack(Point(0.10, -0.03, 0.05));
+  trajectory.pushBack(Point(0.10, -0.02, 0.05));
+  trajectory.pushBack(Point(0.10, -0.01, 0.05));
+  trajectory.pushBack(Point(0.10, 0.01, 0.05));
+  trajectory.pushBack(Point(0.10, 0.02, 0.05));
+  trajectory.pushBack(Point(0.10, 0.03, 0.05));
+  trajectory.pushBack(Point(0.10, 0.04, 0.05));
+  trajectory.pushBack(Point(0.10, 0.05, 0.05));
   
+  // Position above the first point, a little higher
+  reachCartesian(Point(trajectory[0].x, trajectory[0].y, trajectory[1].z + 0.01));
+
+  // Wait for a keypress of the first endstop to start the motion
+  while (!button1.pressed()) delay(10);
+
   executeTrajectory(trajectory, MIN_VELOCITY_STEPS_S, 2000, MIN_VELOCITY_STEPS_S); // peak at 2000 steps/s
-  */
-
-  Point A (L1 + L2, 0, 0.05);
-  Point B (L1, L2, 0.05);
-  Point C (L1, 0, 0.05);
-  Point D (L1, -L2, 0.05);
-  Point center (L1 + L2 / 2, 0, 0.05);
-
-  moveArc(A, B, center);
-  moveArc(B, C, center);
-  moveArc(C, D, center);
-  moveArc(D, A, center);
 
   delay(2000);
   disable();
