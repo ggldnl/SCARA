@@ -109,8 +109,7 @@ Summary of the content of each file:
 - `kinematics.hpp`: everything related to this particular robot's kinematics (direct and inverse kinematics, joint velocities computation, ...);
 - `SCARA.ino`: main script with routines to follow a specified trajectory and reach a cartesian point or a joint configuration;
 
-## Specify your trajectory
-
+<!--
 A trajectory is a geometric path + a timing law. In our case things are much simpler and a trajectory is assumed to be a list of points to be reached one after another with a certain velocity (in steps/s). Even if the code to compute joint velocities and thus realize a particular end effector velocity is partially there, I'm not using it (yet?). 
 
 To define your trajectory, replace the section in `SCARA.ino` where the points are added to the trajectory vector. The points in the following example describe a circular trajectory with radius 0.05, center (0.12, 0) and z=0.05 meters:
@@ -130,6 +129,8 @@ To define your trajectory, replace the section in `SCARA.ino` where the points a
 ```
 
 Calling `executeTrajectory(trajectory)` after this will make the robot execute the trajectory (if feasible i.e. all points are within the reachable workspace and the velocities and acceleration are well conditioned). By default the velocities and acceleration used are the ones defined in the `config.cpp` file but can bypassed using the `executeTrajectory` method's parameters.
+
+-->
 
 ## TODO
 
