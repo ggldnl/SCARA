@@ -23,17 +23,19 @@ Considering the situation, I decided to build my own robotic arm taking inspirat
 
 Some renders of the arm in Fusion 360:
 
-<p align="center">
-  <img src="media/SCARA.png" alt="Standard Material" width="45%" />
-  <img src="media/SCARA_colored.png" alt="Colored Plastic" width="45%" />
-  <!-- <p align="center">* missing screws, nuts and heat set inserts</p> -->
-</p>
+| ![Rendering 0](media/renderings/rendering_0.png) | ![Rendering 1](media/renderings/rendering_1.png) |
+|--------------------------------------------------|--------------------------------------------------|
+| ![Rendering 2](media/renderings/rendering_0.png) | ![Rendering 3](media/renderings/rendering_1.png) |
 
 The original project used a DEVIA board, which is an Arduino Zero with built-in sockets for three A4988 stepper motor drivers and onboard drivers for four servos. I opted for an Arduino Uno paired with a CNC shield because it is more accessible, easy to find, and I happened to have both lying around. This setup provides four sockets for stepper drivers and three pins that can be used for the endstops or the end-effector. I also added a 12V mini fan (used for 3d printers) to cool the stepper drivers but this is totally optional. 
 
 ## Examples
 
-TODO
+[![Morning routine](https://img.youtube.com/vi/YOUTUBE_VIDEO_ID_HERE/0.jpg)](https://www.youtube.com/watch?v=YOUTUBE_VIDEO_ID_HERE)
+
+[![Pen plotter](https://img.youtube.com/vi/YOUTUBE_VIDEO_ID_HERE/0.jpg)](https://www.youtube.com/watch?v=YOUTUBE_VIDEO_ID_HERE)
+
+[![Following a simple straight line](https://img.youtube.com/vi/YOUTUBE_VIDEO_ID_HERE/0.jpg)](https://www.youtube.com/watch?v=YOUTUBE_VIDEO_ID_HERE)
 
 ## 3D printing
 
@@ -107,7 +109,14 @@ Summary of the content of each file:
 - `stepper.hpp`: code to control a stepper motor and make it cover a distance following a trapezoidal/triangular speed profile (everything is expressed in steps, steps/s, steps/s^2);
 - `config.hpp`: config file with kinematic structure and velocity/acceleration related constants; You can edit this to adapt the code to your needs;
 - `kinematics.hpp`: everything related to this particular robot's kinematics (direct and inverse kinematics, joint velocities computation, ...);
-- `SCARA.ino`: main script with routines to follow a specified trajectory and reach a cartesian point or a joint configuration;
+- `SCARA.ino`: main sketch exposing methods to follow a specified trajectory and reach a cartesian point or a joint configuration;
+
+We can use:
+- `reachJoint(IKSolution, ...)` to reach a joint configuration with a trapezoidal speed profile;
+- `reachCartesian(Point, ...)` to reach a cartesian point with a trapezoidal speed profile;
+- `moveStraightLine(Point, Point, ...)` to move between two cartesian points in a straight line interpolating on intermediate positions; we use a linear speed profile between each pair of intermediate points;
+- `moveArc(Point, Point, ...)` to move between two cartesian points on an arc interpolating on intermediate positions; we use a linear speed profile between each pair of intermediate points;
+- `executeTrajectory(Vector<Point>, ...)` to follow geometric paths; we use the `moveArc(Point, Point, ...)` method between each pair of points; 
 
 <!--
 A trajectory is a geometric path + a timing law. In our case things are much simpler and a trajectory is assumed to be a list of points to be reached one after another with a certain velocity (in steps/s). Even if the code to compute joint velocities and thus realize a particular end effector velocity is partially there, I'm not using it (yet?). 
