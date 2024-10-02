@@ -32,7 +32,7 @@ Total: 150.8 (omitting heat set inserts and locknuts)
     3. use a 5V fan and connect it to the 5V and GND pins of the CNC shield;
     
     I provided 3 versions of the control box lid to accomodate each case.
-- Number of locknuts used (only where vibrations could break the arm): 8
+- Number of locknuts used (only where vibrations would unscrew a regular nut): 8
 - Number of heat set inserts used: 24
 - Complete list of M2 screws and nuts used: 6x M2x16 screw + 6x M2 nuts to keep the micro switches in place 
 - Complete list of M3 screws and nuts used:
