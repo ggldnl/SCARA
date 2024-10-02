@@ -59,9 +59,9 @@ You can find all the parts to print in the [hardware/printed_parts](/hardware/pr
 
 ## Assembly instructions
 
-Check out [here](/hardware/BOM.md) for the Bill of Materials and some notes on what you will need. [Here](https://instructions.online/?id=12092-scara) you can find the assembly instructions ([pdf version](/hardware/assembly.pdf)).
+Check out [here](/hardware/BOM.md) for the Bill of Materials and some notes on what you will need. [Here](/hardware/assembly.pdf) you can find the pdf version of the assembly instructions (that also contains a section on the electronics).
 
-Use this QR code if you want to follow the instructions on another device:
+Use this QR code ([link](https://instructions.online/?id=12092-scara) if you want to follow the instructions on another device:
 
 <p align="center">
   <img src="media/cadasio.png"/>
@@ -75,6 +75,7 @@ Use this QR code if you want to follow the instructions on another device:
 </p>
 -->
 
+<!--
 ## Electronics
 
 <p align="center">
@@ -91,6 +92,8 @@ Note:
 </p>
 
 After assembling everything and putting together the electronics: download the project > open `software/SCARA/SCARA.ino` from the arduino IDE > compile and upload to the arduino.
+
+-->
 
 ## Brief software overview
 
