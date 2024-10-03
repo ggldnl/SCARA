@@ -118,7 +118,7 @@ Summary of the content of each file:
 - `structs.hpp`: structures used to make the code more readable and compact (Point, IKSolution, Steps);
 - `button.hpp`: code to handle button events (button pressed and released);
 - `logger.hpp`: logger to print formatted strings filtering by logging level (info, warn, error, debug);
-- `stepper.hpp`: code to control a stepper motor and make it cover a distance following a trapezoidal/triangular speed profile (everything is expressed in steps, steps/s, steps/s^2);
+- `stepper.hpp`: code to control a stepper motor and make it cover a distance following a trapezoidal/triangular/linear speed profile (everything is expressed in steps, steps/s, steps/s^2);
 - `config.hpp`: config file with kinematic structure and velocity/acceleration related constants; You can edit this to adapt the code to your needs;
 - `kinematics.hpp`: everything related to this particular robot's kinematics (direct and inverse kinematics, joint velocities computation, ...);
 - `SCARA.ino`: main sketch exposing methods to follow a specified trajectory and reach a cartesian point or a joint configuration;
@@ -155,10 +155,10 @@ Calling `executeTrajectory(trajectory)` after this will make the robot execute t
 
 ## TODO
 
-- [ ] Add more renderings
-- [ ] Add assembly instructions
-- [ ] Add schematic diagram
-- [ ] Design a universal mounting block to attach tools to the forearm
+- [x] Add more renderings
+- [ ] Add assembly pdf instructions
+- [ ] Update Cadasio instructions
+- [x] Add schematic diagram
 - [x] Forget AccelStepper/MobaTools and write your own library to simultaneously control multiple steppers
 - [ ] Add forearm calibration endstop
 - [x] Complete the BOM with the list of M3 screws needed
