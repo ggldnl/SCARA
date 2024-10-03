@@ -23,9 +23,21 @@ Considering the situation, I decided to build my own robotic arm taking inspirat
 
 Some renders of the arm in Fusion 360:
 
-| ![Rendering 0](media/renderings/rendering_0.png) | ![Rendering 1](media/renderings/rendering_1.png) |
-|--------------------------------------------------|--------------------------------------------------|
-| ![Rendering 2](media/renderings/rendering_0.png) | ![Rendering 3](media/renderings/rendering_1.png) |
+<table>
+  <tr>
+    <td><img src="media/renderings/rendering_0.png" alt="Rendering 0"></td>
+    <td><img src="media/renderings/rendering_1.png" alt="Rendering 1"></td>
+  </tr>
+  <tr>
+    <td><img src="media/renderings/rendering_3.png" alt="Rendering 2"></td>
+    <td><img src="media/renderings/rendering_2.png" alt="Rendering 3"></td>
+  </tr>
+  <tr>
+    <td><img src="media/renderings/rendering_4.png" alt="Rendering 4"></td>
+    <td><img src="media/renderings/rendering_5.png" alt="Rendering 5"></td>
+  </tr>
+</table>
+
 
 The original project used a DEVIA board, which is an Arduino Zero with built-in sockets for three A4988 stepper motor drivers and onboard drivers for four servos. I opted for an Arduino Uno paired with a CNC shield because it is more accessible, easy to find, and I happened to have both lying around. This setup provides four sockets for stepper drivers and three pins that can be used for the endstops or the end-effector. I also added a 12V mini fan (used for 3d printers) to cool the stepper drivers but this is totally optional. 
 
