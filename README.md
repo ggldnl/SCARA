@@ -19,7 +19,7 @@ Considering the situation, I decided to build my own robotic arm taking inspirat
 - improved `z_base` support to joints 2 and 3, now consisting of two pieces.
 - control box for better organization, with optional fan to keep the stepper driver cool.
 - universal tool mounting point (not limited to the previous servo motor insert).
-- cleaner code with no external dependency (I wrote all the libraries I used), modular and easy to read and understand .
+- clean code with no external dependency (I wrote all the libraries I used), modular and easy to read and understand .
 
 Some renders of the arm in Fusion 360:
 
@@ -75,7 +75,7 @@ You can find all the parts to print in the [hardware/printed_parts](/hardware/pr
 
 Check out [here](/hardware/BOM.md) for the Bill of Materials and some notes on what you will need. [Here](/hardware/assembly.pdf) you can find the pdf version of the assembly instructions (that also contains a section on the electronics).
 
-Use this QR code ([link](https://instructions.online/?id=12092-scara) if you want to follow the instructions on another device:
+Use [this QR code](https://instructions.online/?id=12092-scara) if you want to follow the instructions on another device:
 
 <p align="center">
   <img src="media/cadasio.png"/>
