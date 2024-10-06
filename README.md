@@ -16,6 +16,7 @@ Considering the situation, I decided to build my own robotic arm taking inspirat
 - endstops for each motor, essential for calibration and to recover from missed steps.
 - heat set inserts to avoid screwing directly into the plastic.
 - simplified assembly for joints 2 and 3.
+- properly designed transmission gears.
 - improved `z_base` support to joints 2 and 3, now consisting of two pieces.
 - control box for better organization, with optional fan to keep the stepper driver cool.
 - universal tool mounting point (not limited to the previous servo motor insert).
@@ -160,5 +161,6 @@ Calling `executeTrajectory(trajectory)` after this will make the robot execute t
 - [ ] Update Cadasio instructions
 - [x] Add schematic diagram
 - [x] Forget AccelStepper/MobaTools and write your own library to simultaneously control multiple steppers
-- [ ] Add forearm calibration endstop
+- [x] Add forearm calibration endstop
 - [x] Complete the BOM with the list of M3 screws needed
+- [ ] Update STLs
